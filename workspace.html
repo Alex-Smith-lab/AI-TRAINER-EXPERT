@@ -10,28 +10,16 @@
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>Annotation Workspace | AI TRAINER EXPERT</title>
+  <title>AI TRAINER EXPERT — Workspace</title>
 
   <link
-    rel="preconnect"
-    href="https://fonts.googleapis.com"
+    rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%237c3aed'/%3E%3Ctext x='50' y='65' text-anchor='middle' font-size='38' font-weight='bold' fill='white'%3EAI%3C/text%3E%3C/svg%3E"
   >
 
-  <link
-    rel="preconnect"
-    href="https://fonts.gstatic.com"
-    crossorigin
-  >
+  <link rel="stylesheet" href="workspace.css">
 
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet"
-  >
-
-  <link
-    rel="stylesheet"
-    href="workspace.css"
-  >
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 </head>
 
@@ -39,438 +27,90 @@
 <body>
 
 
-<!-- =========================================================
-     TOP BAR
-========================================================= -->
+  <header class="workspace-topbar">
 
-<header class="workspace-topbar">
+    <div class="workspace-brand">
 
-  <div class="workspace-brand">
+      <button
+        id="backButton"
+        class="icon-button"
+      >
+        ←
+      </button>
 
-    <button
-      id="backButton"
-      class="back-button"
-    >
-      ←
-    </button>
-
-    <div class="brand-square">
-      AI
-    </div>
-
-    <div>
-
-      <strong>
-        AI TRAINER EXPERT
-      </strong>
-
-      <span>
-        ANNOTATION WORKSPACE
-      </span>
-
-    </div>
-
-  </div>
-
-
-  <div class="workspace-task-info">
-
-    <strong id="workspaceTaskName">
-      Loading task...
-    </strong>
-
-    <span id="workspaceTaskType">
-      Loading...
-    </span>
-
-  </div>
-
-
-  <div class="workspace-user">
-
-    <div
-      id="workspaceUserAvatar"
-      class="workspace-avatar"
-    >
-      A
-    </div>
-
-    <span id="workspaceUserName">
-      User
-    </span>
-
-  </div>
-
-</header>
-
-
-<!-- =========================================================
-     WORKSPACE
-========================================================= -->
-
-<main class="workspace">
-
-
-  <!-- =======================================================
-       LEFT SENSOR PANEL
-  ======================================================== -->
-
-  <aside class="camera-sidebar">
-
-    <div class="panel-header">
+      <div class="brand-square">
+        AI
+      </div>
 
       <div>
 
-        <span class="panel-eyebrow">
-          MULTI-CAMERA
-        </span>
+        <strong>
+          AI TRAINER EXPERT
+        </strong>
 
-        <h2>
-          7 Cameras
-        </h2>
+        <span id="workspaceTaskName">
+          Annotation Workspace
+        </span>
 
       </div>
 
-      <span
-        id="cameraCount"
-        class="count-badge"
-      >
-        7
+    </div>
+
+
+    <div class="workspace-user">
+
+      <span id="workspaceUser">
+        User
       </span>
 
-    </div>
-
-
-    <div class="camera-list">
-
-
       <button
-        class="camera-item active"
-        data-camera="front_wide"
+        id="closeWorkspace"
+        class="close-button"
       >
-
-        <span class="camera-number">
-          01
-        </span>
-
-        <span>
-
-          <strong>
-            Front Wide
-          </strong>
-
-          <small>
-            FRONT-WIDE
-          </small>
-
-        </span>
-
-        <span class="camera-status">
-          ●
-        </span>
-
-      </button>
-
-
-      <button
-        class="camera-item"
-        data-camera="front_narrow"
-      >
-
-        <span class="camera-number">
-          02
-        </span>
-
-        <span>
-
-          <strong>
-            Front Narrow
-          </strong>
-
-          <small>
-            FRONT-NARROW
-          </small>
-
-        </span>
-
-        <span class="camera-status">
-          ●
-        </span>
-
-      </button>
-
-
-      <button
-        class="camera-item"
-        data-camera="front_left"
-      >
-
-        <span class="camera-number">
-          03
-        </span>
-
-        <span>
-
-          <strong>
-            Front Left
-          </strong>
-
-          <small>
-            FRONT-LEFT
-          </small>
-
-        </span>
-
-        <span class="camera-status">
-          ●
-        </span>
-
-      </button>
-
-
-      <button
-        class="camera-item"
-        data-camera="front_right"
-      >
-
-        <span class="camera-number">
-          04
-        </span>
-
-        <span>
-
-          <strong>
-            Front Right
-          </strong>
-
-          <small>
-            FRONT-RIGHT
-          </small>
-
-        </span>
-
-        <span class="camera-status">
-          ●
-        </span>
-
-      </button>
-
-
-      <button
-        class="camera-item"
-        data-camera="rear_left"
-      >
-
-        <span class="camera-number">
-          05
-        </span>
-
-        <span>
-
-          <strong>
-            Rear Left
-          </strong>
-
-          <small>
-            REAR-LEFT
-          </small>
-
-        </span>
-
-        <span class="camera-status">
-          ●
-        </span>
-
-      </button>
-
-
-      <button
-        class="camera-item"
-        data-camera="rear_right"
-      >
-
-        <span class="camera-number">
-          06
-        </span>
-
-        <span>
-
-          <strong>
-            Rear Right
-          </strong>
-
-          <small>
-            REAR-RIGHT
-          </small>
-
-        </span>
-
-        <span class="camera-status">
-          ●
-        </span>
-
-      </button>
-
-
-      <button
-        class="camera-item"
-        data-camera="rear"
-      >
-
-        <span class="camera-number">
-          07
-        </span>
-
-        <span>
-
-          <strong>
-            Rear
-          </strong>
-
-          <small>
-            REAR
-          </small>
-
-        </span>
-
-        <span class="camera-status">
-          ●
-        </span>
-
-      </button>
-
-
-    </div>
-
-
-    <div class="camera-tools">
-
-      <button id="cameraGridButton">
-        ▦ Camera Grid
-      </button>
-
-      <button id="syncButton">
-        ◉ Sync Sensors
+        Close
       </button>
 
     </div>
 
-  </aside>
+  </header>
 
 
-  <!-- =======================================================
-       CENTER
-  ======================================================== -->
-
-  <section class="annotation-center">
+  <main class="workspace">
 
 
-    <!-- TOOLBAR -->
+    <!-- LEFT SIDE -->
 
-    <div class="annotation-toolbar">
-
-      <div class="tool-group">
-
-        <button
-          class="tool-button active"
-          id="selectTool"
-        >
-          ↖ Select
-        </button>
-
-        <button
-          class="tool-button"
-          id="cuboidTool"
-        >
-          ◇ Cuboid
-        </button>
-
-        <button
-          class="tool-button"
-          id="box2dTool"
-        >
-          □ 2D Box
-        </button>
-
-        <button
-          class="tool-button"
-          id="deleteTool"
-        >
-          ⌫ Delete
-        </button>
-
-      </div>
-
-
-      <div class="tool-group">
-
-        <button
-          class="tool-button"
-          id="undoButton"
-        >
-          ↶
-        </button>
-
-        <button
-          class="tool-button"
-          id="redoButton"
-        >
-          ↷
-        </button>
-
-        <button
-          class="tool-button"
-          id="fitButton"
-        >
-          Fit
-        </button>
-
-      </div>
-
-    </div>
-
-
-    <!-- LIDAR -->
-
-    <div
+    <section
       id="lidarPanel"
-      class="sensor-panel lidar-panel"
+      class="annotation-panel lidar-panel"
     >
 
-      <div class="sensor-panel-header">
+      <div class="panel-header">
 
         <div>
 
-          <span class="sensor-label">
+          <span class="panel-kicker">
             3D SENSOR
           </span>
 
-          <strong>
+          <h2>
             LiDAR Point Cloud
-          </strong>
-
-          <span
-            id="lidarFrameInfo"
-            class="frame-info"
-          >
-            Frame 000001
-          </span>
+          </h2>
 
         </div>
 
-
-        <div class="sensor-panel-actions">
+        <div class="panel-actions">
 
           <button
-            id="lidarExpand"
-            title="Expand"
+            id="expandLidar"
+            class="small-button"
           >
             ⛶
           </button>
 
           <button
-            id="lidarClose"
-            title="Close"
+            id="closeLidar"
+            class="small-button"
           >
             ×
           </button>
@@ -481,70 +121,333 @@
 
 
       <div
-        id="lidarCanvasWrap"
-        class="lidar-canvas-wrap"
+        id="lidarCanvas"
+        class="lidar-canvas"
       >
 
-        <canvas
-          id="lidarCanvas"
-        ></canvas>
+        <div class="lidar-grid"></div>
+
+        <div class="ego-car">
+          <span></span>
+        </div>
 
 
-        <div class="lidar-overlay">
+        <div class="point-cloud cloud-a"></div>
+        <div class="point-cloud cloud-b"></div>
+        <div class="point-cloud cloud-c"></div>
+        <div class="point-cloud cloud-d"></div>
 
-          <span>
-            TOP / 3D
-          </span>
 
-          <span>
-            X
-          </span>
-
-          <span>
-            Y
-          </span>
-
-          <span>
-            Z
-          </span>
-
+        <div
+          class="cuboid cuboid-1"
+          data-object="OBJ-001"
+        >
+          <span>OBJ-001</span>
         </div>
 
 
         <div
-          id="lidarSelection"
-          class="sensor-selection hidden"
+          class="cuboid cuboid-2"
+          data-object="OBJ-002"
         >
-          Object selected
+          <span>OBJ-002</span>
+        </div>
+
+
+        <div
+          class="cuboid cuboid-3"
+          data-object="OBJ-003"
+        >
+          <span>OBJ-003</span>
+        </div>
+
+
+        <div class="lidar-axis">
+
+          <span>X</span>
+          <span>Y</span>
+          <span>Z</span>
+
         </div>
 
       </div>
 
 
-      <div class="sensor-footer">
+      <div class="panel-footer">
 
-        <div class="sensor-info">
-
-          <span>
-            Objects:
-            <strong id="objectCount">
-              0
-            </strong>
-          </span>
+        <div>
 
           <span>
-            Selected:
-            <strong id="selectedCount">
-              0
-            </strong>
+            Objects
           </span>
 
+          <strong id="objectCount">
+            3
+          </strong>
+
+        </div>
+
+
+        <div>
+
           <span>
-            User:
-            <strong id="annotationUser">
-              —
-            </strong>
+            Your boxes
           </span>
+
+          <strong id="userBoxCount">
+            0
+          </strong>
+
+        </div>
+
+
+        <button
+          id="submitLidar"
+          class="submit-button"
+        >
+          Submit LiDAR
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- RIGHT SIDE -->
+
+    <section
+      id="cameraPanel"
+      class="annotation-panel camera-panel"
+    >
+
+      <div class="panel-header">
+
+        <div>
+
+          <span class="panel-kicker">
+            2D VISION
+          </span>
+
+          <h2>
+            Camera Views
+          </h2>
+
+        </div>
+
+        <div class="panel-actions">
+
+          <button
+            id="expandCamera"
+            class="small-button"
+          >
+            ⛶
+          </button>
+
+          <button
+            id="closeCamera"
+            class="small-button"
+          >
+            ×
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div class="camera-grid">
+
+
+        <div class="camera-view">
+
+          <div class="camera-label">
+            CAM 01 — FRONT
+          </div>
+
+          <div class="road-scene">
+
+            <div class="road"></div>
+
+            <div
+              class="car car-a"
+            ></div>
+
+            <div
+              class="car car-b"
+            ></div>
+
+            <div
+              class="person person-a"
+            ></div>
+
+
+            <div
+              class="box box-green"
+              data-object="OBJ-001"
+            >
+              <span>
+                OBJ-001
+              </span>
+            </div>
+
+
+            <div
+              class="box box-yellow"
+              data-object="OBJ-002"
+            >
+              <span>
+                OBJ-002
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="camera-view">
+
+          <div class="camera-label">
+            CAM 02 — FRONT LEFT
+          </div>
+
+          <div class="road-scene alt">
+
+            <div class="road"></div>
+
+            <div class="car car-c"></div>
+
+            <div
+              class="box box-green second"
+              data-object="OBJ-001"
+            >
+              <span>
+                OBJ-001
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="camera-view">
+
+          <div class="camera-label">
+            CAM 03 — FRONT RIGHT
+          </div>
+
+          <div class="road-scene">
+
+            <div class="road"></div>
+
+            <div class="car car-d"></div>
+
+            <div
+              class="box box-purple"
+              data-object="OBJ-003"
+            >
+              <span>
+                OBJ-003
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="camera-view">
+
+          <div class="camera-label">
+            CAM 04 — REAR LEFT
+          </div>
+
+          <div class="road-scene rear">
+
+            <div class="road"></div>
+
+            <div class="car car-e"></div>
+
+            <div
+              class="box box-green third"
+              data-object="OBJ-002"
+            >
+              <span>
+                OBJ-002
+              </span>
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="camera-view">
+
+          <div class="camera-label">
+            CAM 05 — REAR RIGHT
+          </div>
+
+          <div class="road-scene rear">
+
+            <div class="road"></div>
+
+            <div class="car car-f"></div>
+
+          </div>
+
+        </div>
+
+
+        <div class="camera-view">
+
+          <div class="camera-label">
+            CAM 06 — REAR
+          </div>
+
+          <div class="road-scene rear">
+
+            <div class="road"></div>
+
+            <div class="car car-g"></div>
+
+          </div>
+
+        </div>
+
+
+        <div class="camera-view">
+
+          <div class="camera-label">
+            CAM 07 — SIDE
+          </div>
+
+          <div class="road-scene side">
+
+            <div class="road"></div>
+
+            <div class="car car-h"></div>
+
+          </div>
+
+        </div>
+
+
+      </div>
+
+
+      <div class="camera-toolbar">
+
+        <div class="annotation-info">
+
+          <span>
+            Selected object
+          </span>
+
+          <strong id="selectedObject">
+            None
+          </strong>
 
         </div>
 
@@ -556,116 +459,9 @@
           Generate Box to 2D
         </button>
 
-      </div>
-
-    </div>
-
-
-    <!-- 2D CAMERA -->
-
-    <div
-      id="cameraPanel"
-      class="sensor-panel camera-panel"
-    >
-
-      <div class="sensor-panel-header">
-
-        <div>
-
-          <span class="sensor-label">
-            2D SENSOR
-          </span>
-
-          <strong id="activeCameraName">
-            Front Wide
-          </strong>
-
-          <span
-            id="cameraFrameInfo"
-            class="frame-info"
-          >
-            Frame 000001
-          </span>
-
-        </div>
-
-
-        <div class="sensor-panel-actions">
-
-          <button
-            id="cameraExpand"
-            title="Expand"
-          >
-            ⛶
-          </button>
-
-          <button
-            id="cameraClose"
-            title="Close"
-          >
-            ×
-          </button>
-
-        </div>
-
-      </div>
-
-
-      <div
-        id="cameraCanvasWrap"
-        class="camera-canvas-wrap"
-      >
-
-        <canvas
-          id="cameraCanvas"
-        ></canvas>
-
-
-        <div class="camera-overlay">
-
-          <span>
-            2D VIEW
-          </span>
-
-          <span id="projectionStatus">
-            LIVE PROJECTION
-          </span>
-
-        </div>
-
-      </div>
-
-
-      <div class="sensor-footer">
-
-        <div class="sensor-info">
-
-          <span>
-            Camera:
-            <strong id="cameraFooterName">
-              Front Wide
-            </strong>
-          </span>
-
-          <span>
-            Track ID:
-            <strong id="trackId">
-              —
-            </strong>
-          </span>
-
-          <span>
-            Boxes:
-            <strong id="cameraBoxCount">
-              0
-            </strong>
-          </span>
-
-        </div>
-
 
         <button
-          id="submitCameraButton"
+          id="submit2D"
           class="submit-button"
         >
           Submit 2D
@@ -673,369 +469,157 @@
 
       </div>
 
-    </div>
+    </section>
 
 
-    <!-- TIMELINE -->
+    <!-- OBJECT PANEL -->
 
-    <div class="timeline">
+    <aside class="object-panel">
 
-      <button
-        id="previousFrame"
-        class="timeline-button"
-      >
-        ‹
-      </button>
+      <div class="object-panel-title">
 
-      <button
-        id="playButton"
-        class="play-button"
-      >
-        ▶
-      </button>
-
-      <div id="timelineTrack" class="timeline-track">
-
-        <div
-          id="timelineProgress"
-          class="timeline-progress"
-        ></div>
-
-        <div
-          id="timelineHandle"
-          class="timeline-handle"
-        ></div>
-
-      </div>
-
-      <button
-        id="nextFrame"
-        class="timeline-button"
-      >
-        ›
-      </button>
-
-      <span
-        id="timelineFrame"
-        class="timeline-frame"
-      >
-        1 / 100
-      </span>
-
-    </div>
-
-
-  </section>
-
-
-  <!-- =======================================================
-       RIGHT PANEL
-  ======================================================== -->
-
-  <aside class="properties-panel">
-
-    <div class="properties-header">
-
-      <div>
-
-        <span class="panel-eyebrow">
+        <span>
           ANNOTATION
         </span>
 
-        <h2>
-          Object Properties
-        </h2>
-
-      </div>
-
-    </div>
-
-
-    <div
-      id="noSelection"
-      class="no-selection"
-    >
-
-      <div>
-        ◇
-      </div>
-
-      <h3>
-        Select an object
-      </h3>
-
-      <p>
-        Select a cuboid or 2D box
-        to edit its properties.
-      </p>
-
-    </div>
-
-
-    <div
-      id="objectProperties"
-      class="object-properties hidden"
-    >
-
-      <div class="property-section">
-
-        <label>
-          Track ID
-        </label>
-
-        <input
-          id="propertyTrackId"
-          readonly
-        >
+        <h3>
+          Objects
+        </h3>
 
       </div>
 
 
-      <div class="property-section">
-
-        <label>
-          Class
-        </label>
-
-        <select id="propertyClass">
-
-          <option>
-            Vehicle
-          </option>
-
-          <option>
-            Pedestrian
-          </option>
-
-          <option>
-            Cyclist
-          </option>
-
-          <option>
-            Motorcycle
-          </option>
-
-          <option>
-            Bus
-          </option>
-
-          <option>
-            Truck
-          </option>
-
-          <option>
-            Unknown
-          </option>
-
-        </select>
-
-      </div>
-
-
-      <div class="property-section">
-
-        <label>
-          Occlusion
-        </label>
-
-        <select id="propertyOcclusion">
-
-          <option value="0">
-            0–25% Low
-          </option>
-
-          <option value="1">
-            26–50% Medium
-          </option>
-
-          <option value="2">
-            51–99% High
-          </option>
-
-        </select>
-
-      </div>
-
-
-      <div class="property-section">
-
-        <label>
-          Truncated
-        </label>
-
-        <label class="switch-row">
-
-          <input
-            type="checkbox"
-            id="propertyTruncated"
-          >
-
-          <span>
-            Object cut by camera boundary
-          </span>
-
-        </label>
-
-      </div>
-
-
-      <div class="property-section">
-
-        <label>
-          Dimensions
-        </label>
-
-        <div class="dimension-grid">
-
-          <input
-            id="propertyLength"
-            type="number"
-            step=".01"
-            placeholder="L"
-          >
-
-          <input
-            id="propertyWidth"
-            type="number"
-            step=".01"
-            placeholder="W"
-          >
-
-          <input
-            id="propertyHeight"
-            type="number"
-            step=".01"
-            placeholder="H"
-          >
-
-        </div>
-
-      </div>
-
-
-      <div class="property-section">
-
-        <label>
-          Annotation owner
-        </label>
-
-        <div
-          id="propertyOwner"
-          class="owner-box"
-        >
-          —
-        </div>
-
-      </div>
-
-
-      <button
-        id="saveObjectButton"
-        class="save-object-button"
+      <div
+        id="objectList"
+        class="object-list"
       >
-        Save object
-      </button>
 
-    </div>
+        <button
+          class="object-item active"
+          data-object="OBJ-001"
+        >
+
+          <span class="object-dot green"></span>
+
+          <div>
+
+            <strong>
+              OBJ-001
+            </strong>
+
+            <small>
+              Vehicle
+            </small>
+
+          </div>
+
+        </button>
 
 
-    <div class="quality-card">
+        <button
+          class="object-item"
+          data-object="OBJ-002"
+        >
 
-      <div class="quality-header">
+          <span class="object-dot yellow"></span>
+
+          <div>
+
+            <strong>
+              OBJ-002
+            </strong>
+
+            <small>
+              Vehicle
+            </small>
+
+          </div>
+
+        </button>
+
+
+        <button
+          class="object-item"
+          data-object="OBJ-003"
+        >
+
+          <span class="object-dot purple"></span>
+
+          <div>
+
+            <strong>
+              OBJ-003
+            </strong>
+
+            <small>
+              Pedestrian
+            </small>
+
+          </div>
+
+        </button>
+
+      </div>
+
+
+      <div class="annotation-rules">
 
         <strong>
-          Quality checklist
+          Annotation checks
         </strong>
 
+        <div>
+          ✓ Tight cuboid
+        </div>
+
+        <div>
+          ✓ Ground aligned
+        </div>
+
+        <div>
+          ✓ Correct heading
+        </div>
+
+        <div>
+          ✓ Global track ID
+        </div>
+
+        <div>
+          ✓ Camera consistency
+        </div>
+
+      </div>
+
+
+      <div class="annotator-card">
+
         <span>
-          LIVE
+          ANNOTATOR
         </span>
 
+        <strong id="annotatorName">
+          User
+        </strong>
+
+        <small id="annotatorRole">
+          Worker
+        </small>
+
       </div>
 
-      <div class="quality-item">
-        <span>Ground contact</span>
-        <b id="qualityGround">✓</b>
-      </div>
+    </aside>
 
-      <div class="quality-item">
-        <span>Heading alignment</span>
-        <b id="qualityHeading">✓</b>
-      </div>
-
-      <div class="quality-item">
-        <span>Tight dimensions</span>
-        <b id="qualityDimensions">✓</b>
-      </div>
-
-      <div class="quality-item">
-        <span>Track consistency</span>
-        <b id="qualityTrack">✓</b>
-      </div>
-
-    </div>
+  </main>
 
 
-    <div class="workspace-actions">
-
-      <button
-        id="submitTaskButton"
-        class="submit-task-button"
-      >
-        Submit Task
-      </button>
-
-      <button
-        id="saveDraftButton"
-        class="save-draft-button"
-      >
-        Save Draft
-      </button>
-
-    </div>
-
-  </aside>
-
-</main>
+  <div
+    id="workspaceToast"
+    class="workspace-toast hidden"
+  ></div>
 
 
-<!-- =========================================================
-     ACCESS DENIED
-========================================================= -->
-
-<div
-  id="accessDenied"
-  class="access-denied hidden"
->
-
-  <div class="denied-card">
-
-    <div class="denied-icon">
-      !
-    </div>
-
-    <h1>
-      Access denied
-    </h1>
-
-    <p id="deniedMessage">
-      You do not have permission to access this workspace.
-    </p>
-
-    <button
-      id="deniedBack"
-      class="submit-task-button"
-    >
-      Return to dashboard
-    </button>
-
-  </div>
-
-</div>
-
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="workspace.js"></script>
+  <script src="workspace.js"></script>
 
 </body>
+
 </html>
