@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>AI TRAINER EXPERT — Home</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+<div class="app-shell">
+
+  <header class="topbar">
+
+    <div class="company-name">
+      AI TRAINER <span>EXPERT</span>
+    </div>
+
+    <div class="user-top">
+
+      <div>
+        <div id="topUserName"
+             style="font-size:13px;font-weight:800;">
+          User
+        </div>
+
+        <div id="topUserRole"
+             style="font-size:10px;color:var(--muted);">
+          Coworker
+        </div>
+      </div>
+
+      <div id="avatar" class="avatar">A</div>
+
+      <button id="adminButton"
+              class="secondary-btn hidden"
+              style="width:auto;">
+        Admin
+      </button>
+
+      <button id="logoutButton"
+              class="secondary-btn"
+              style="width:auto;">
+        Sign Out
+      </button>
+
+    </div>
+
+  </header>
+
+  <main class="page">
+
+    <section class="greeting">
+
+      <div class="eyebrow">AI TRAINER EXPERT</div>
+
+      <h1>
+        <span id="greetingWord">Good day</span>,
+        <span id="userName">Annotator</span>.
+      </h1>
+
+      <p>
+        Your annotation workspace, assignments and production activity.
+      </p>
+
+    </section>
+
+    <section class="dashboard-grid">
+
+      <div class="card">
+
+        <div class="card-title">
+          Work assigned
+        </div>
+
+        <h2>Your production queue</h2>
+
+        <div id="taskList" class="task-list">
+          <div class="empty-work">
+            Loading assignments...
+          </div>
+        </div>
+
+      </div>
+
+      <div>
+
+        <div class="card">
+
+          <div class="card-title">
+            Your access
+          </div>
+
+          <div class="metric-row">
+            <span>Role</span>
+            <strong id="accessRole">—</strong>
+          </div>
+
+          <div class="metric-row">
+            <span>2D workspace</span>
+            <strong id="access2d">—</strong>
+          </div>
+
+          <div class="metric-row">
+            <span>3D workspace</span>
+            <strong id="access3d">—</strong>
+          </div>
+
+          <div class="metric-row">
+            <span>Account</span>
+            <strong id="accountStatus">—</strong>
+          </div>
+
+        </div>
+
+        <div style="height:20px"></div>
+
+        <div class="card">
+
+          <div class="card-title">
+            Quality focus
+          </div>
+
+          <h2>Annotation principles</h2>
+
+          <p style="color:var(--muted);font-size:13px;line-height:1.7;">
+            Tight boxes. Correct class. Correct heading.
+            Consistent track IDs. Correct ground contact.
+            Cross-camera consistency.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="home.js"></script>
+
+</body>
+</html>
