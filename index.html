@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>AI TRAINER EXPERT</title>
+
+  <meta
+    name="description"
+    content="AI TRAINER EXPERT - Professional 2D and 3D data annotation workspace."
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  >
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <link
+    rel="stylesheet"
+    href="style.css"
+  >
+
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
+</head>
+
+<body>
+
+<!-- ==========================================================
+     LOGIN
+========================================================== -->
+
+<section id="authScreen" class="auth-screen">
+
+  <div class="auth-left">
+
+    <div class="brand-small">
+      <div class="brand-mark">AI</div>
+      <div>
+        <strong>AI TRAINER</strong>
+        <span>EXPERT</span>
+      </div>
+    </div>
+
+    <div class="auth-form-wrap">
+
+      <div class="eyebrow">
+        SECURE WORKSPACE
+      </div>
+
+      <h1>
+        Train intelligence.
+        <span>Build precision.</span>
+      </h1>
+
+      <p class="auth-description">
+        Sign in to your authorized 2D and 3D data annotation workspace.
+      </p>
+
+      <form id="loginForm">
+
+        <label>Email address</label>
+
+        <input
+          id="email"
+          type="email"
+          placeholder="you@example.com"
+          autocomplete="email"
+          required
+        >
+
+        <label>Password</label>
+
+        <input
+          id="password"
+          type="password"
+          placeholder="Your password"
+          autocomplete="current-password"
+          required
+        >
+
+        <button
+          class="primary-button full"
+          type="submit"
+        >
+          Sign in
+        </button>
+
+      </form>
+
+      <button
+        id="forgotBtn"
+        class="text-button"
+      >
+        Forgot password?
+      </button>
+
+      <button
+        id="requestAccessBtn"
+        class="secondary-button full"
+      >
+        Request workspace access
+      </button>
+
+      <div
+        id="authMessage"
+        class="message"
+      ></div>
+
+    </div>
+
+    <div class="auth-footer">
+      AI TRAINER EXPERT © 2026
+    </div>
+
+  </div>
+
+
+  <div class="auth-right">
+
+    <div class="annotation-hero">
+
+      <div class="hero-top">
+        <span class="live-dot"></span>
+        MULTI-SENSOR ANNOTATION
+      </div>
+
+      <div class="hero-visual">
+
+        <div class="road-grid"></div>
+
+        <div class="hero-car car-a"></div>
+        <div class="hero-car car-b"></div>
+        <div class="hero-car car-c"></div>
+
+        <div class="hero-box box-a"></div>
+        <div class="hero-box box-b"></div>
+        <div class="hero-box box-c"></div>
+
+        <div class="lidar-point p1"></div>
+        <div class="lidar-point p2"></div>
+        <div class="lidar-point p3"></div>
+        <div class="lidar-point p4"></div>
+        <div class="lidar-point p5"></div>
+        <div class="lidar-point p6"></div>
+        <div class="lidar-point p7"></div>
+        <div class="lidar-point p8"></div>
+        <div class="lidar-point p9"></div>
+        <div class="lidar-point p10"></div>
+
+        <div class="hero-crosshair">
+          <span></span>
+        </div>
+
+      </div>
+
+      <div class="hero-caption">
+
+        <span>AI TRAINER EXPERT</span>
+
+        <h2>
+          2D + 3D<br>
+          Perception Training
+        </h2>
+
+        <p>
+          Multi-camera annotation, LiDAR cuboids,
+          track continuity and reviewer-ready quality control.
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ==========================================================
+     APP
+========================================================== -->
+
+<div
+  id="app"
+  class="app hidden"
+>
+
+  <!-- SIDEBAR -->
+
+  <aside class="sidebar">
+
+    <div class="sidebar-brand">
+
+      <div class="brand-mark">
+        AI
+      </div>
+
+      <div>
+        <strong>AI TRAINER</strong>
+        <span>EXPERT</span>
+      </div>
+
+    </div>
+
+
+    <nav class="side-nav">
+
+      <button
+        class="nav-item active"
+        data-page="home"
+      >
+        <span>⌂</span>
+        Home
+      </button>
+
+      <button
+        class="nav-item"
+        data-page="tasks"
+      >
+        <span>▣</span>
+        My Work
+      </button>
+
+      <button
+        class="nav-item"
+        data-page="statistics"
+      >
+        <span>◈</span>
+        Statistics
+      </button>
+
+      <button
+        class="nav-item admin-only"
+        data-page="admin"
+      >
+        <span>⚙</span>
+        Admin Control
+      </button>
+
+    </nav>
+
+
+    <div class="sidebar-bottom">
+
+      <div class="user-mini">
+
+        <div
+          id="sidebarAvatar"
+          class="avatar"
+        >
+          A
+        </div>
+
+        <div class="user-mini-text">
+
+          <strong id="sidebarName">
+            User
+          </strong>
+
+          <span id="sidebarRole">
+            Coworker
+          </span>
+
+        </div>
+
+      </div>
+
+      <button
+        id="logoutBtn"
+        class="logout-button"
+      >
+        Sign out
+      </button>
+
+    </div>
+
+  </aside>
+
+
+  <!-- MAIN -->
+
+  <main class="main-content">
+
+    <header class="topbar">
+
+      <div>
+
+        <div class="company-name">
+          AI TRAINER EXPERT
+        </div>
+
+        <div
+          id="pageTitle"
+          class="page-title"
+        >
+          Workspace Overview
+        </div>
+
+      </div>
+
+
+      <div class="top-user">
+
+        <div class="status-indicator"></div>
+
+        <div class="top-user-text">
+
+          <strong id="topUserName">
+            User
+          </strong>
+
+          <span id="topUserEmail">
+            -
+          </span>
+
+        </div>
+
+        <div
+          id="topAvatar"
+          class="avatar"
+        >
+          A
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <!-- HOME -->
+
+    <section
+      id="homePage"
+      class="page"
+    >
+
+      <div class="greeting-row">
+
+        <div>
+
+          <div
+            id="timeGreeting"
+            class="eyebrow"
+          >
+            GOOD AFTERNOON
+          </div>
+
+          <h1>
+            Welcome back,
+            <span id="welcomeName">
+              User
+            </span>
+          </h1>
+
+          <p>
+            Your authorized training workspace is ready.
+          </p>
+
+        </div>
+
+        <div class="date-card">
+
+          <span id="currentDay">
+            Thursday
+          </span>
+
+          <strong id="currentDate">
+            27 August 2026
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="accessNotice"
+        class="access-notice hidden"
+      ></div>
+
+
+      <div class="section-heading">
+
+        <div>
+          <span>WORK QUEUE</span>
+          <h2>Assigned work</h2>
+        </div>
+
+        <button
+          class="ghost-button"
+          onclick="loadTasks()"
+        >
+          Refresh
+        </button>
+
+      </div>
+
+
+      <div
+        id="workGrid"
+        class="work-grid"
+      ></div>
+
+    </section>
+
+
+    <!-- TASKS -->
+
+    <section
+      id="tasksPage"
+      class="page hidden"
+    >
+
+      <div class="section-heading">
+
+        <div>
+          <span>MY WORK</span>
+          <h2>Task queue</h2>
+        </div>
+
+      </div>
+
+      <div
+        id="allTasksGrid"
+        class="work-grid"
+      ></div>
+
+    </section>
+
+
+    <!-- STATISTICS -->
+
+    <section
+      id="statisticsPage"
+      class="page hidden"
+    >
+
+      <div class="section-heading">
+
+        <div>
+          <span>PERFORMANCE</span>
+          <h2>Annotation statistics</h2>
+        </div>
+
+      </div>
+
+
+      <div class="stat-grid">
+
+        <div class="stat-card">
+
+          <span>2D BOXES</span>
+
+          <strong id="stat2d">
+            0
+          </strong>
+
+          <small>
+            Total recorded
+          </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <span>3D BOXES</span>
+
+          <strong id="stat3d">
+            0
+          </strong>
+
+          <small>
+            LiDAR cuboids
+          </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <span>TASKS</span>
+
+          <strong id="statTasks">
+            0
+          </strong>
+
+          <small>
+            Your queue
+          </small>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <span>ROLE</span>
+
+          <strong id="statRole">
+            -
+          </strong>
+
+          <small>
+            Current permission level
+          </small>
+
+        </div>
+
+      </div>
+
+
+      <div class="quality-card">
+
+        <div>
+
+          <span>ANNOTATION QUALITY</span>
+
+          <h3>
+            Precision-first workflow
+          </h3>
+
+          <p>
+            Keep cuboids tight, grounded and correctly oriented.
+            Maintain the same Track ID across camera handoffs.
+          </p>
+
+        </div>
+
+        <div class="quality-rings">
+
+          <div>
+            <strong>IoU</strong>
+            <span>3D</span>
+          </div>
+
+          <div>
+            <strong>ID</strong>
+            <span>Track</span>
+          </div>
+
+          <div>
+            <strong>2D</strong>
+            <span>Pixel</span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ADMIN -->
+
+    <section
+      id="adminPage"
+      class="page hidden"
+    >
+
+      <div class="section-heading">
+
+        <div>
+          <span>ADMINISTRATION</span>
+          <h2>Control center</h2>
+        </div>
+
+        <button
+          class="primary-button"
+          id="refreshAdminBtn"
+        >
+          Refresh
+        </button>
+
+      </div>
+
+
+      <div class="admin-grid">
+
+        <!-- CREATE TASK -->
+
+        <div class="admin-card">
+
+          <div class="admin-card-head">
+
+            <div>
+              <span>WORK MANAGEMENT</span>
+              <h3>Create task</h3>
+            </div>
+
+          </div>
+
+
+          <form id="createTaskForm">
+
+            <input
+              id="taskName"
+              type="text"
+              placeholder="Task name"
+              required
+            >
+
+            <textarea
+              id="taskDescription"
+              placeholder="Task description"
+            ></textarea>
+
+            <select id="taskType">
+              <option value="3d">
+                3D LiDAR + 7 Camera
+              </option>
+
+              <option value="2d">
+                2D Camera
+              </option>
+            </select>
+
+            <select id="taskAssignee">
+              <option value="">
+                Unassigned
+              </option>
+            </select>
+
+            <label>
+              Frame interval in seconds
+            </label>
+
+            <input
+              id="frameInterval"
+              type="number"
+              value="0.5"
+              min="0.1"
+              step="0.1"
+            >
+
+            <label>
+              Source video
+            </label>
+
+            <input
+              id="taskVideo"
+              type="file"
+              accept="video/*"
+            >
+
+            <button
+              class="primary-button full"
+              type="submit"
+            >
+              Create task
+            </button>
+
+          </form>
+
+          <div
+            id="taskCreateMessage"
+            class="message"
+          ></div>
+
+        </div>
+
+
+        <!-- USERS -->
+
+        <div class="admin-card">
+
+          <div class="admin-card-head">
+
+            <div>
+              <span>ACCESS CONTROL</span>
+              <h3>Team members</h3>
+            </div>
+
+          </div>
+
+          <div
+            id="usersTable"
+            class="users-table"
+          ></div>
+
+        </div>
+
+      </div>
+
+
+      <!-- TASK ADMIN -->
+
+      <div class="admin-card large">
+
+        <div class="admin-card-head">
+
+          <div>
+            <span>QUEUE MANAGEMENT</span>
+            <h3>All tasks</h3>
+          </div>
+
+        </div>
+
+        <div
+          id="adminTasksTable"
+          class="users-table"
+        ></div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+
+<!-- ==========================================================
+     WORKSPACE
+========================================================== -->
+
+<section
+  id="workspace"
+  class="workspace hidden"
+>
+
+  <header class="workspace-topbar">
+
+    <div class="workspace-title">
+
+      <button
+        id="closeWorkspace"
+        class="icon-button"
+      >
+        ×
+      </button>
+
+      <div>
+
+        <span id="workspaceType">
+          3D TASK
+        </span>
+
+        <strong id="workspaceTaskName">
+          Task
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <div class="workspace-actions">
+
+      <div
+        id="workspaceUserBadge"
+        class="workspace-user-badge"
+      >
+        User
+      </div>
+
+      <button
+        id="submitTaskBtn"
+        class="submit-button"
+      >
+        Submit task
+      </button>
+
+    </div>
+
+  </header>
+
+
+  <div class="workspace-body">
+
+    <!-- LIDAR -->
+
+    <section
+      id="lidarPanel"
+      class="sensor-panel lidar-panel"
+    >
+
+      <div class="panel-toolbar">
+
+        <div>
+
+          <span>
+            LIDAR POINT CLOUD
+          </span>
+
+          <strong>
+            360° Sensor View
+          </strong>
+
+        </div>
+
+        <div class="panel-tools">
+
+          <button
+            id="lidarExpand"
+            class="small-tool"
+          >
+            ⛶
+          </button>
+
+          <button
+            id="lidarClose"
+            class="small-tool"
+          >
+            ×
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div class="lidar-info">
+
+        <span>
+          Class: No Class
+        </span>
+
+        <span>
+          Points: 0
+        </span>
+
+        <span>
+          Sensor Distance: --
+        </span>
+
+        <span>
+          Position: --
+        </span>
+
+      </div>
+
+
+      <canvas
+        id="lidarCanvas"
+      ></canvas>
+
+
+      <div class="lidar-hint">
+
+        <span class="legend green"></span>
+        Dense returns
+
+        <span class="legend blue"></span>
+        Ground
+
+        <span class="legend yellow"></span>
+        Object
+
+      </div>
+
+    </section>
+
+
+    <!-- CAMERA SIDE -->
+
+    <section
+      id="cameraPanel"
+      class="sensor-panel camera-panel"
+    >
+
+      <div class="panel-toolbar">
+
+        <div>
+
+          <span>
+            CAMERA FUSION
+          </span>
+
+          <strong>
+            7 Camera View
+          </strong>
+
+        </div>
+
+        <div class="panel-tools">
+
+          <select id="cameraSelect">
+
+            <option>
+              Front Wide
+            </option>
+
+            <option>
+              Front Narrow
+            </option>
+
+            <option>
+              Front Left
+            </option>
+
+            <option>
+              Front Right
+            </option>
+
+            <option>
+              Rear Left
+            </option>
+
+            <option>
+              Rear Right
+            </option>
+
+            <option>
+              Rear
+            </option>
+
+          </select>
+
+          <button
+            id="cameraExpand"
+            class="small-tool"
+          >
+            ⛶
+          </button>
+
+          <button
+            id="cameraClose"
+            class="small-tool"
+          >
+            ×
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div class="camera-view">
+
+        <canvas
+          id="cameraCanvas"
+        ></canvas>
+
+        <div
+          id="cameraLockNotice"
+          class="camera-lock-notice hidden"
+        >
+          <strong>
+            PROJECTED FROM 3D
+          </strong>
+
+          <span>
+            This box is locked in the 2D camera.
+          </span>
+        </div>
+
+      </div>
+
+
+      <div class="camera-footer">
+
+        <button
+          id="previousFrame"
+          class="frame-button"
+        >
+          ‹
+        </button>
+
+        <div class="frame-timeline">
+
+          <input
+            id="frameSlider"
+            type="range"
+            min="0"
+            max="100"
+            value="0"
+          >
+
+          <div>
+
+            <span id="frameNumber">
+              Frame 0
+            </span>
+
+            <span id="frameTime">
+              0.00s
+            </span>
+
+          </div>
+
+        </div>
+
+        <button
+          id="nextFrame"
+          class="frame-button"
+        >
+          ›
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- ANNOTATION TOOLS -->
+
+    <aside
+      id="annotationTools"
+      class="annotation-tools"
+    >
+
+      <div class="tools-head">
+
+        <span>
+          ANNOTATION
+        </span>
+
+        <strong id="toolMode">
+          3D MODE
+        </strong>
+
+      </div>
+
+
+      <div class="tool-section">
+
+        <label>
+          Object class
+        </label>
+
+        <select id="labelSelect">
+
+          <option>
+            Vehicle
+          </option>
+
+          <option>
+            Sedan
+          </option>
+
+          <option>
+            SUV
+          </option>
+
+          <option>
+            Truck
+          </option>
+
+          <option>
+            Bus
+          </option>
+
+          <option>
+            Motorcycle
+          </option>
+
+          <option>
+            Cyclist
+          </option>
+
+          <option>
+            Pedestrian
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="tool-section">
+
+        <label>
+          Track ID
+        </label>
+
+        <input
+          id="trackId"
+          placeholder="e.g. VEH_1042"
+        >
+
+      </div>
+
+
+      <div class="tool-section">
+
+        <button
+          id="drawBoxBtn"
+          class="primary-button full"
+        >
+          Draw cuboid
+        </button>
+
+        <button
+          id="generate2DBtn"
+          class="secondary-button full"
+        >
+          Generate box to 2D
+        </button>
+
+      </div>
+
+
+      <div class="tool-section">
+
+        <div class="tool-stat">
+
+          <span>
+            Your 3D boxes
+          </span>
+
+          <strong id="workspace3dCount">
+            0
+          </strong>
+
+        </div>
+
+        <div class="tool-stat">
+
+          <span>
+            Your 2D boxes
+          </span>
+
+          <strong id="workspace2dCount">
+            0
+          </strong>
+
+        </div>
+
+        <div class="tool-stat">
+
+          <span>
+            Current frame
+          </span>
+
+          <strong id="workspaceFrameCount">
+            0
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="quality-panel">
+
+        <strong>
+          Quality checklist
+        </strong>
+
+        <div>
+          <span>✓</span>
+          Ground contact
+        </div>
+
+        <div>
+          <span>✓</span>
+          Tight extents
+        </div>
+
+        <div>
+          <span>✓</span>
+          Correct yaw
+        </div>
+
+        <div>
+          <span>✓</span>
+          Track continuity
+        </div>
+
+        <div>
+          <span>✓</span>
+          Cross-camera consistency
+        </div>
+
+      </div>
+
+    </aside>
+
+  </div>
+
+</section>
+
+
+<!-- ==========================================================
+     MODAL
+========================================================== -->
+
+<div
+  id="modal"
+  class="modal hidden"
+>
+
+  <div class="modal-card">
+
+    <button
+      id="modalClose"
+      class="modal-close"
+    >
+      ×
+    </button>
+
+    <div id="modalContent"></div>
+
+  </div>
+
+</div>
+
+
+<div
+  id="toast"
+  class="toast"
+></div>
+
+
+<script src="app.js"></script>
+
+</body>
+</html>
