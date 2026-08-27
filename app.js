@@ -1,335 +1,488 @@
-/* ============================================================
+/* =========================================================
    AI TRAINER EXPERT
-   Main Application
-   Supabase JS v2
-============================================================ */
+   SUPABASE AUTH + DASHBOARD
+========================================================= */
+
+"use strict";
 
 
-/* ============================================================
-   SUPABASE CONFIGURATION
-============================================================ */
-
-/*
-  IMPORTANT:
-
-  This is the PUBLIC Supabase project URL.
-
-  The project reference comes from your Supabase public key.
-*/
+/* =========================================================
+   SUPABASE CONFIG
+========================================================= */
 
 const SUPABASE_URL =
   "https://mlmldgwzvkpprwkmfdlh.supabase.co";
 
 
-/*
-  Public publishable key.
-
-  NEVER put a Supabase service_role key in this file.
-*/
-
-const SUPABASE_KEY =
+const SUPABASE_PUBLISHABLE_KEY =
   "sb_publishable_8WucrYYIhnr1EXdNMkdMsQ_vFtZecB2";
 
 
-/*
-  Create Supabase client.
-
-  Supabase v2 automatically manages the browser session.
-*/
-
-const { createClient } = window.supabase;
-
-const supabaseClient = createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY,
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true
+const supabaseClient =
+  window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY,
+    {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      }
     }
-  }
-);
+  );
 
 
-/* ============================================================
+/* =========================================================
    GLOBAL STATE
-============================================================ */
+========================================================= */
 
 let currentUser = null;
 let currentProfile = null;
-
-let allTasks = [];
-let allUsers = [];
-
-let currentPage = "home";
+let currentSession = null;
 
 
-/* ============================================================
+/*
+ * Important:
+ * We DO NOT put the administrator's email here.
+ *
+ * Admin status comes from:
+ *
+ * profiles.role = "admin"
+ *
+ * This means normal users do not see an admin email
+ * inside the frontend code.
+ */
+
+
+/* =========================================================
    DOM HELPERS
-============================================================ */
+========================================================= */
 
-const $ = (id) => document.getElementById(id);
+const $ = (id) =>
+  document.getElementById(id);
 
-function qs(selector) {
-  return document.querySelector(selector);
+
+function show(el) {
+
+  if (!el) return;
+
+  el.classList.remove("hidden");
 }
 
-function qsa(selector) {
-  return [...document.querySelectorAll(selector)];
+
+function hide(el) {
+
+  if (!el) return;
+
+  el.classList.add("hidden");
 }
 
 
-/* ============================================================
-   START APPLICATION
-============================================================ */
+function setMessage(
+  element,
+  message,
+  type = "info"
+) {
 
-document.addEventListener("DOMContentLoaded", async () => {
+  if (!element) return;
 
-  bindLoginEvents();
-  bindNavigationEvents();
-  bindAdminEvents();
+  element.textContent = message;
 
-  updateClock();
+  element.className =
+    `message ${type}`;
 
-  setInterval(updateClock, 60000);
-
-  await initializeApplication();
-
-});
+}
 
 
-/* ============================================================
-   INITIALIZE
-============================================================ */
+function clearMessage(element) {
 
-async function initializeApplication() {
+  if (!element) return;
 
-  try {
+  element.textContent = "";
 
-    /*
-      First check whether Supabase can actually be reached.
+  element.className =
+    "message hidden";
 
-      This is useful because "Failed to fetch" normally means
-      the browser couldn't reach the API at all.
-    */
-
-    const reachable = await testSupabaseConnection();
-
-    if (!reachable) {
-
-      showLoginMessage(
-        "Cannot reach the Supabase server. Check that the project is active and that this Supabase URL is correct.",
-        "error"
-      );
-
-      return;
-    }
+}
 
 
-    /*
-      Get existing session.
-    */
+/* =========================================================
+   TOAST
+========================================================= */
 
-    const {
-      data,
-      error
-    } = await supabaseClient.auth.getSession();
+function toast(
+  message,
+  type = "info"
+) {
 
+  const el = $("toast");
 
-    if (error) {
+  if (!el) return;
 
-      console.error(
-        "Supabase getSession error:",
-        error
-      );
+  el.textContent = message;
 
-      showLoginMessage(
-        friendlySupabaseError(error),
-        "error"
-      );
+  el.classList.remove("hidden");
 
-      return;
-    }
-
-
-    if (data && data.session) {
-
-      await handleSignedInUser(
-        data.session.user
-      );
-
-    }
-
-
-    /*
-      Listen for future authentication changes.
-    */
-
-    supabaseClient.auth.onAuthStateChange(
-      async (event, session) => {
-
-        console.log(
-          "Auth event:",
-          event
-        );
-
-        if (
-          event === "SIGNED_IN" &&
-          session
-        ) {
-
-          await handleSignedInUser(
-            session.user
-          );
-
-        }
-
-        if (event === "SIGNED_OUT") {
-
-          currentUser = null;
-          currentProfile = null;
-
-          showLoginScreen();
-
-        }
-
-      }
-    );
-
-  } catch (error) {
-
-    console.error(
-      "Initialization error:",
-      error
-    );
-
-    showLoginMessage(
-      "The application could not connect to Supabase. Open the browser console for the technical error.",
-      "error"
-    );
-
+  if (type === "error") {
+    el.style.borderColor =
+      "rgba(239,68,68,.35)";
+  } else if (type === "success") {
+    el.style.borderColor =
+      "rgba(34,197,94,.35)";
+  } else {
+    el.style.borderColor =
+      "rgba(139,92,246,.35)";
   }
 
+  clearTimeout(window.__toastTimer);
+
+  window.__toastTimer =
+    setTimeout(() => {
+
+      el.classList.add("hidden");
+
+    }, 4000);
 }
 
 
-/* ============================================================
-   SUPABASE CONNECTION TEST
-============================================================ */
+/* =========================================================
+   URL FOR PASSWORD RESET
+========================================================= */
 
-async function testSupabaseConnection() {
+function getResetRedirectURL() {
 
-  try {
+  /*
+   * Works on GitHub Pages and local hosting.
+   *
+   * Example:
+   * https://username.github.io/repository/
+   */
 
-    const response = await fetch(
-      `${SUPABASE_URL}/auth/v1/health`,
-      {
-        method: "GET",
-        headers: {
-          apikey: SUPABASE_KEY
-        }
-      }
-    );
-
-    return response.ok;
-
-  } catch (error) {
-
-    console.error(
-      "Supabase network test failed:",
-      error
-    );
-
-    return false;
-  }
-
+  return (
+    window.location.origin +
+    window.location.pathname
+  );
 }
 
 
-/* ============================================================
-   LOGIN EVENTS
-============================================================ */
+/* =========================================================
+   INITIALIZATION
+========================================================= */
 
-function bindLoginEvents() {
+document.addEventListener(
+  "DOMContentLoaded",
+  init
+);
 
-  $("loginForm").addEventListener(
-    "submit",
-    handleLogin
+
+async function init() {
+
+  console.log(
+    "AI TRAINER EXPERT starting..."
   );
 
+  bindEvents();
 
-  $("togglePassword").addEventListener(
-    "click",
-    () => {
+  updateDate();
 
-      const input =
-        $("loginPassword");
+  updateGreeting();
+
+
+  /*
+   * First check if there is an existing
+   * Supabase session.
+   */
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient.auth.getSession();
+
+
+  if (error) {
+
+    console.error(
+      "Session error:",
+      error
+    );
+
+    showLogin();
+
+    return;
+  }
+
+
+  if (data?.session) {
+
+    console.log(
+      "Existing session detected."
+    );
+
+    await handleAuthenticatedSession(
+      data.session
+    );
+
+  } else {
+
+    console.log(
+      "No active session."
+    );
+
+    showLogin();
+
+  }
+
+
+  /*
+   * Listen for login/logout/password events.
+   */
+
+  supabaseClient.auth.onAuthStateChange(
+    async (event, session) => {
+
+      console.log(
+        "Auth event:",
+        event
+      );
+
 
       if (
-        input.type === "password"
+        event === "SIGNED_IN" &&
+        session
       ) {
 
-        input.type = "text";
+        /*
+         * Do not perform complicated
+         * Supabase calls directly inside
+         * the callback.
+         */
 
-        $("togglePassword").textContent =
-          "Hide";
+        setTimeout(
+          () =>
+            handleAuthenticatedSession(
+              session
+            ),
+          0
+        );
 
-      } else {
+      }
 
-        input.type = "password";
 
-        $("togglePassword").textContent =
-          "Show";
+      if (
+        event === "SIGNED_OUT"
+      ) {
+
+        currentUser = null;
+        currentProfile = null;
+        currentSession = null;
+
+        showLogin();
+
+      }
+
+
+      if (
+        event === "PASSWORD_RECOVERY"
+      ) {
+
+        showPasswordRecovery();
 
       }
 
     }
   );
 
-
-  $("forgotPassword").addEventListener(
-    "click",
-    handleForgotPassword
-  );
+}
 
 
-  $("logoutButton").addEventListener(
-    "click",
-    logout
-  );
+/* =========================================================
+   EVENT BINDINGS
+========================================================= */
+
+function bindEvents() {
+
+  const loginForm =
+    $("loginForm");
+
+  if (loginForm) {
+
+    loginForm.addEventListener(
+      "submit",
+      handleLogin
+    );
+
+  }
 
 
-  $("refreshTasks").addEventListener(
-    "click",
-    loadTasks
-  );
+  const forgotButton =
+    $("forgotPasswordButton");
+
+  if (forgotButton) {
+
+    forgotButton.addEventListener(
+      "click",
+      showForgotPassword
+    );
+
+  }
+
+
+  const backButton =
+    $("backToLogin");
+
+  if (backButton) {
+
+    backButton.addEventListener(
+      "click",
+      showLogin
+    );
+
+  }
+
+
+  const forgotForm =
+    $("forgotForm");
+
+  if (forgotForm) {
+
+    forgotForm.addEventListener(
+      "submit",
+      handleForgotPassword
+    );
+
+  }
+
+
+  const newPasswordForm =
+    $("newPasswordForm");
+
+  if (newPasswordForm) {
+
+    newPasswordForm.addEventListener(
+      "submit",
+      handleNewPassword
+    );
+
+  }
+
+
+  const toggle =
+    $("togglePassword");
+
+  if (toggle) {
+
+    toggle.addEventListener(
+      "click",
+      () => {
+
+        const input =
+          $("loginPassword");
+
+        if (!input) return;
+
+        if (
+          input.type === "password"
+        ) {
+
+          input.type = "text";
+
+          toggle.textContent = "◌";
+
+        } else {
+
+          input.type = "password";
+
+          toggle.textContent = "◉";
+
+        }
+
+      }
+    );
+
+  }
+
+
+  const logout =
+    $("logoutButton");
+
+  if (logout) {
+
+    logout.addEventListener(
+      "click",
+      handleLogout
+    );
+
+  }
+
+
+  document
+    .querySelectorAll(".nav-item")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const view =
+            button.dataset.view;
+
+          navigate(view);
+
+        }
+      );
+
+    });
+
+
+  const refresh =
+    $("refreshUsersButton");
+
+  if (refresh) {
+
+    refresh.addEventListener(
+      "click",
+      loadAdminUsers
+    );
+
+  }
 
 }
 
 
-/* ============================================================
+/* =========================================================
    LOGIN
-============================================================ */
+========================================================= */
 
 async function handleLogin(event) {
 
   event.preventDefault();
 
+
   const email =
     $("loginEmail")
-      .value
-      .trim()
-      .toLowerCase();
+      ?.value
+      ?.trim()
+      ?.toLowerCase();
+
 
   const password =
-    $("loginPassword").value;
+    $("loginPassword")
+      ?.value;
 
 
-  if (!email || !password) {
+  const message =
+    $("loginMessage");
 
-    showLoginMessage(
-      "Enter your email and password.",
+
+  clearMessage(message);
+
+
+  if (!email) {
+
+    setMessage(
+      message,
+      "Please enter your email address.",
       "error"
     );
 
@@ -337,28 +490,65 @@ async function handleLogin(event) {
   }
 
 
-  setLoginLoading(true);
+  if (!password) {
 
-  clearLoginMessage();
+    setMessage(
+      message,
+      "Please enter your password.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const button =
+    $("loginButton");
+
+
+  const buttonText =
+    $("loginButtonText");
+
+
+  const spinner =
+    $("loginSpinner");
+
+
+  if (button) {
+    button.disabled = true;
+  }
+
+
+  if (buttonText) {
+    buttonText.textContent =
+      "Signing in...";
+  }
+
+
+  show(spinner);
+
+
+  console.log(
+    "Attempting Supabase authentication..."
+  );
 
 
   try {
 
-    console.log(
-      "Attempting Supabase authentication..."
-    );
-
+    /*
+     * This is the correct Supabase v2
+     * password login method.
+     */
 
     const {
       data,
       error
-    } = await supabaseClient.auth.signInWithPassword({
-
-      email: email,
-
-      password: password
-
-    });
+    } =
+      await supabaseClient.auth
+        .signInWithPassword({
+          email,
+          password
+        });
 
 
     if (error) {
@@ -368,22 +558,27 @@ async function handleLogin(event) {
         error
       );
 
-      showLoginMessage(
-        friendlyAuthError(error),
+
+      const friendly =
+        getLoginErrorMessage(error);
+
+
+      setMessage(
+        message,
+        friendly,
         "error"
       );
+
 
       return;
     }
 
 
-    if (
-      !data ||
-      !data.user
-    ) {
+    if (!data?.session) {
 
-      showLoginMessage(
-        "Login was not completed. Please try again.",
+      setMessage(
+        message,
+        "Login completed but no session was created. Please try again.",
         "error"
       );
 
@@ -392,62 +587,65 @@ async function handleLogin(event) {
 
 
     console.log(
-      "Supabase login successful."
+      "Supabase authentication successful."
     );
 
 
-    await handleSignedInUser(
-      data.user
+    currentSession =
+      data.session;
+
+    currentUser =
+      data.user;
+
+
+    /*
+     * Profile/access check happens
+     * AFTER authentication.
+     */
+
+    await handleAuthenticatedSession(
+      data.session
     );
 
 
   } catch (error) {
 
     console.error(
-      "Login exception:",
+      "Unexpected login error:",
       error
     );
 
 
-    /*
-      This catches the exact "Failed to fetch" case.
-    */
+    setMessage(
+      message,
+      "Unable to contact the authentication service. Check your internet connection and try again.",
+      "error"
+    );
 
-    if (
-      String(error.message)
-        .toLowerCase()
-        .includes("failed to fetch")
-    ) {
-
-      showLoginMessage(
-        "Failed to fetch Supabase. The website cannot reach the Supabase API. Check the Supabase project URL, project status, browser network connection and whether the project is paused.",
-        "error"
-      );
-
-    } else {
-
-      showLoginMessage(
-        error.message ||
-        "Unexpected login error.",
-        "error"
-      );
-
-    }
 
   } finally {
 
-    setLoginLoading(false);
+    if (button) {
+      button.disabled = false;
+    }
+
+    if (buttonText) {
+      buttonText.textContent =
+        "Sign in";
+    }
+
+    hide(spinner);
 
   }
 
 }
 
 
-/* ============================================================
-   AUTH ERROR
-============================================================ */
+/* =========================================================
+   LOGIN ERROR HANDLING
+========================================================= */
 
-function friendlyAuthError(error) {
+function getLoginErrorMessage(error) {
 
   const message =
     String(
@@ -461,7 +659,11 @@ function friendlyAuthError(error) {
     )
   ) {
 
-    return "Incorrect email or password.";
+    return (
+      "Incorrect email or password. " +
+      "If you have forgotten your password, click " +
+      "\"Forgot password?\" below."
+    );
 
   }
 
@@ -472,7 +674,10 @@ function friendlyAuthError(error) {
     )
   ) {
 
-    return "Your email has not been confirmed yet.";
+    return (
+      "Your email has not been confirmed yet. " +
+      "Check your email for the Supabase confirmation message."
+    );
 
   }
 
@@ -483,7 +688,9 @@ function friendlyAuthError(error) {
     )
   ) {
 
-    return "Too many login attempts. Please wait a few minutes.";
+    return (
+      "Too many login attempts. Please wait a few minutes and try again."
+    );
 
   }
 
@@ -494,59 +701,82 @@ function friendlyAuthError(error) {
     )
   ) {
 
-    return "Failed to fetch Supabase. The browser cannot reach the authentication server.";
+    return (
+      "The website could not reach Supabase. " +
+      "Check your internet connection and make sure the Supabase project is online."
+    );
 
   }
 
 
   return (
     error?.message ||
-    "Unable to sign in."
+    "Unable to sign in. Please try again."
   );
 
 }
 
 
-/* ============================================================
-   SUPABASE ERROR
-============================================================ */
-
-function friendlySupabaseError(error) {
-
-  if (
-    !error
-  ) {
-
-    return "Supabase connection error.";
-
-  }
-
-  return (
-    error.message ||
-    error.hint ||
-    "Supabase returned an unknown error."
-  );
-
-}
-
-
-/* ============================================================
+/* =========================================================
    FORGOT PASSWORD
-============================================================ */
+========================================================= */
 
-async function handleForgotPassword() {
+function showForgotPassword() {
+
+  hide($("loginView"));
+  hide($("newPasswordView"));
+
+  show($("forgotView"));
+
 
   const email =
     $("loginEmail")
-      .value
-      .trim()
-      .toLowerCase();
+      ?.value
+      ?.trim();
+
+
+  if (
+    email &&
+    $("forgotEmail")
+  ) {
+
+    $("forgotEmail").value =
+      email;
+
+  }
+
+
+  clearMessage(
+    $("forgotMessage")
+  );
+
+}
+
+
+async function handleForgotPassword(event) {
+
+  event.preventDefault();
+
+
+  const email =
+    $("forgotEmail")
+      ?.value
+      ?.trim()
+      ?.toLowerCase();
+
+
+  const message =
+    $("forgotMessage");
+
+
+  clearMessage(message);
 
 
   if (!email) {
 
-    showLoginMessage(
-      "Enter your email address first, then click Forgot password.",
+    setMessage(
+      message,
+      "Enter your email address.",
       "error"
     );
 
@@ -554,11 +784,36 @@ async function handleForgotPassword() {
   }
 
 
+  const button =
+    $("resetButton");
+
+
+  const text =
+    $("resetButtonText");
+
+
+  const spinner =
+    $("resetSpinner");
+
+
+  button.disabled = true;
+
+  text.textContent =
+    "Sending...";
+
+  show(spinner);
+
+
   try {
 
-    const redirectUrl =
-      window.location.origin +
-      window.location.pathname;
+    const redirectTo =
+      getResetRedirectURL();
+
+
+    console.log(
+      "Password reset redirect:",
+      redirectTo
+    );
 
 
     const {
@@ -568,15 +823,23 @@ async function handleForgotPassword() {
         .resetPasswordForEmail(
           email,
           {
-            redirectTo: redirectUrl
+            redirectTo
           }
         );
 
 
     if (error) {
 
-      showLoginMessage(
-        error.message,
+      console.error(
+        "Password reset error:",
+        error
+      );
+
+
+      setMessage(
+        message,
+        error.message ||
+        "Unable to send password reset email.",
         "error"
       );
 
@@ -584,70 +847,152 @@ async function handleForgotPassword() {
     }
 
 
-    showLoginMessage(
-      "Password reset instructions have been sent if the account exists.",
+    /*
+     * Supabase intentionally does not
+     * reveal whether an account exists.
+     */
+
+    setMessage(
+      message,
+      "If an account exists for that email, a password reset link has been sent. Check your inbox and spam folder.",
       "success"
     );
 
+
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      error
+    );
 
-    showLoginMessage(
-      "Unable to send the password reset request.",
+
+    setMessage(
+      message,
+      "Unable to send the reset email. Please try again.",
       "error"
     );
+
+
+  } finally {
+
+    button.disabled = false;
+
+    text.textContent =
+      "Send reset link";
+
+    hide(spinner);
 
   }
 
 }
 
 
-/* ============================================================
-   SIGNED-IN USER
-============================================================ */
+/* =========================================================
+   PASSWORD RECOVERY PAGE
+========================================================= */
 
-async function handleSignedInUser(user) {
+function showPasswordRecovery() {
 
-  currentUser = user;
+  hide($("loginView"));
+  hide($("forgotView"));
+
+  show($("newPasswordView"));
+
+  clearMessage(
+    $("newPasswordMessage")
+  );
+
+}
+
+
+/* =========================================================
+   UPDATE PASSWORD
+========================================================= */
+
+async function handleNewPassword(event) {
+
+  event.preventDefault();
+
+
+  const password =
+    $("newPassword")
+      ?.value;
+
+
+  const confirmation =
+    $("confirmPassword")
+      ?.value;
+
+
+  const message =
+    $("newPasswordMessage");
+
+
+  clearMessage(message);
+
+
+  if (
+    !password ||
+    password.length < 8
+  ) {
+
+    setMessage(
+      message,
+      "Password must contain at least 8 characters.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  if (
+    password !== confirmation
+  ) {
+
+    setMessage(
+      message,
+      "The passwords do not match.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const button =
+    $("updatePasswordButton");
+
+
+  button.disabled = true;
+
+  button.textContent =
+    "Updating...";
 
 
   try {
 
-    currentProfile =
-      await getUserProfile(
-        user.id
+    const {
+      error
+    } =
+      await supabaseClient.auth
+        .updateUser({
+          password
+        });
+
+
+    if (error) {
+
+      console.error(
+        "Update password error:",
+        error
       );
 
 
-    /*
-      If the profile does not exist,
-      create a safe waiting profile.
-
-      The user still cannot perform protected work
-      until an admin gives access.
-    */
-
-    if (!currentProfile) {
-
-      currentProfile =
-        await createMissingProfile(
-          user
-        );
-
-    }
-
-
-    if (
-      !currentProfile
-    ) {
-
-      await supabaseClient.auth.signOut();
-
-      showLoginScreen();
-
-      showLoginMessage(
-        "Your account does not have an active profile. Ask an administrator to give you access.",
+      setMessage(
+        message,
+        error.message ||
+        "Unable to update password.",
         "error"
       );
 
@@ -655,146 +1000,190 @@ async function handleSignedInUser(user) {
     }
 
 
-    /*
-      Disabled / waitlisted accounts.
-    */
-
-    if (
-      currentProfile.status === "disabled"
-    ) {
-
-      await supabaseClient.auth.signOut();
-
-      showLoginScreen();
-
-      showLoginMessage(
-        "Your account has been disabled. Contact an administrator.",
-        "error"
-      );
-
-      return;
-    }
+    setMessage(
+      message,
+      "Password updated successfully. You can now sign in with your new password.",
+      "success"
+    );
 
 
-    if (
-      currentProfile.status === "waitlist"
-    ) {
+    setTimeout(
+      async () => {
 
-      await supabaseClient.auth.signOut();
+        await supabaseClient.auth.signOut();
 
-      showLoginScreen();
+        showLogin();
 
-      showLoginMessage(
-        "Your account is on the waitlist. An administrator must approve your access before you can enter the workspace.",
-        "error"
-      );
-
-      return;
-    }
-
-
-    /*
-      Everything is good.
-    */
-
-    showAppScreen();
-
-    renderUserIdentity();
-
-    await loadTasks();
-
-    await loadActivity();
-
-    if (
-      currentProfile.role === "admin"
-    ) {
-
-      $("adminNav")
-        .classList
-        .remove("hidden");
-
-    } else {
-
-      $("adminNav")
-        .classList
-        .add("hidden");
-
-    }
+      },
+      1800
+    );
 
 
   } catch (error) {
 
     console.error(
-      "User initialization error:",
       error
     );
+
+
+    setMessage(
+      message,
+      "Unable to update your password.",
+      "error"
+    );
+
+
+  } finally {
+
+    button.disabled = false;
+
+    button.textContent =
+      "Update password";
+
+  }
+
+}
+
+
+/* =========================================================
+   AUTHENTICATED SESSION
+========================================================= */
+
+async function handleAuthenticatedSession(
+  session
+) {
+
+  if (!session?.user) {
+
+    showLogin();
+
+    return;
+  }
+
+
+  currentSession =
+    session;
+
+  currentUser =
+    session.user;
+
+
+  console.log(
+    "Authenticated user:",
+    currentUser.id
+  );
+
+
+  /*
+   * Get profile from our profiles table.
+   */
+
+  const profileResult =
+    await loadUserProfile(
+      currentUser.id
+    );
+
+
+  if (
+    !profileResult
+  ) {
 
     await supabaseClient.auth.signOut();
 
-    showLoginScreen();
 
-    showLoginMessage(
-      "Your account was authenticated but your profile could not be loaded. Check your Supabase RLS policies.",
+    setMessage(
+      $("loginMessage"),
+      "Your account is authenticated, but no active AI TRAINER EXPERT profile was found. Ask an administrator to activate your account.",
       "error"
     );
 
+
+    showLogin();
+
+    return;
   }
 
-}
+
+  currentProfile =
+    profileResult;
 
 
-/* ============================================================
-   PROFILE
-============================================================ */
+  /*
+   * ACCESS CONTROL
+   */
 
-async function getUserProfile(userId) {
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
+  const status =
+    String(
+      currentProfile.status ||
+      ""
+    ).toLowerCase();
 
 
-  if (error) {
+  const role =
+    String(
+      currentProfile.role ||
+      ""
+    ).toLowerCase();
 
-    console.error(
-      "Profile query error:",
-      error
+
+  const isAdmin =
+    role === "admin";
+
+
+  const isActive =
+    status === "active" ||
+    isAdmin;
+
+
+  if (!isActive) {
+
+    await supabaseClient.auth.signOut();
+
+
+    setMessage(
+      $("loginMessage"),
+      getAccessDeniedMessage(
+        currentProfile
+      ),
+      "error"
     );
 
-    throw error;
+
+    showLogin();
+
+    return;
   }
 
 
-  return data;
+  /*
+   * User is authenticated AND
+   * authorized.
+   */
+
+  populateUserUI();
+
+  showApp();
+
+
+  await loadDashboard();
 
 }
 
 
-/* ============================================================
-   CREATE MISSING PROFILE
-============================================================ */
+/* =========================================================
+   LOAD PROFILE
+========================================================= */
 
-async function createMissingProfile(user) {
+async function loadUserProfile(
+  userId
+) {
 
   try {
 
-    const metadata =
-      user.user_metadata || {};
-
-
-    const fullName =
-      metadata.full_name ||
-      metadata.name ||
-      user.email
-        ?.split("@")[0] ||
-      "User";
-
+    /*
+     * Main project table:
+     * profiles
+     */
 
     const {
       data,
@@ -802,37 +1191,29 @@ async function createMissingProfile(user) {
     } =
       await supabaseClient
         .from("profiles")
-        .insert({
-          id: user.id,
-          email: user.email,
-          full_name: fullName,
-          role: "waitlist",
-          status: "waitlist",
-          access_2d: false,
-          access_3d: false
-        })
-        .select()
-        .single();
+        .select(
+          `
+          id,
+          email,
+          full_name,
+          role,
+          status,
+          access_2d,
+          access_3d,
+          company_name
+          `
+        )
+        .eq(
+          "id",
+          userId
+        )
+        .maybeSingle();
 
 
     if (error) {
 
-      /*
-        Another session may already have created it.
-      */
-
-      if (
-        error.code === "23505"
-      ) {
-
-        return await getUserProfile(
-          user.id
-        );
-
-      }
-
       console.error(
-        "Profile creation error:",
+        "Profile lookup error:",
         error
       );
 
@@ -844,7 +1225,10 @@ async function createMissingProfile(user) {
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "Profile exception:",
+      error
+    );
 
     return null;
   }
@@ -852,224 +1236,298 @@ async function createMissingProfile(user) {
 }
 
 
-/* ============================================================
-   UI
-============================================================ */
+/* =========================================================
+   ACCESS DENIED MESSAGE
+========================================================= */
 
-function showLoginScreen() {
-
-  $("loginScreen")
-    .classList
-    .remove("hidden");
-
-  $("appScreen")
-    .classList
-    .add("hidden");
-
-}
-
-
-function showAppScreen() {
-
-  $("loginScreen")
-    .classList
-    .add("hidden");
-
-  $("appScreen")
-    .classList
-    .remove("hidden");
-
-}
-
-
-function setLoginLoading(loading) {
-
-  $("loginButton")
-    .disabled = loading;
-
-  $("loginButtonText")
-    .textContent =
-      loading
-        ? "Signing in..."
-        : "Sign in";
-
-  $("loginSpinner")
-    .classList
-    .toggle(
-      "hidden",
-      !loading
-    );
-
-}
-
-
-function showLoginMessage(
-  message,
-  type = "error"
+function getAccessDeniedMessage(
+  profile
 ) {
 
-  const box =
-    $("loginMessage");
-
-  box.textContent =
-    message;
-
-  box.className =
-    `login-message ${type}`;
-
-}
+  const status =
+    String(
+      profile?.status || ""
+    ).toLowerCase();
 
 
-function clearLoginMessage() {
+  if (
+    status === "waitlist"
+  ) {
 
-  $("loginMessage")
-    .className =
-      "login-message hidden";
+    return (
+      "Your account is on the waiting list. " +
+      "An administrator must approve your access before you can enter."
+    );
 
-}
-
-
-/* ============================================================
-   USER IDENTITY
-============================================================ */
-
-function renderUserIdentity() {
-
-  const profile =
-    currentProfile;
+  }
 
 
-  const name =
-    profile.full_name ||
-    currentUser.email
-      ?.split("@")[0] ||
-    "User";
+  if (
+    status === "suspended"
+  ) {
 
+    return (
+      "Your account has been suspended. " +
+      "Please contact an administrator."
+    );
 
-  $("topUserName")
-    .textContent =
-      name;
-
-
-  $("topUserRole")
-    .textContent =
-      formatRole(
-        profile.role
-      );
-
-
-  $("welcomeName")
-    .textContent =
-      `Welcome back, ${name}.`;
-
-
-  $("topAvatar")
-    .textContent =
-      getInitials(name);
-
-
-  $("roleStat")
-    .textContent =
-      formatRole(
-        profile.role
-      );
-
-
-  $("currentDate")
-    .textContent =
-      new Date()
-        .toLocaleDateString(
-          undefined,
-          {
-            weekday: "long",
-            year: "numeric",
-            month: "long",
-            day: "numeric"
-          }
-        );
-
-}
-
-
-function getInitials(name) {
-
-  return String(name)
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map(
-      x => x[0]
-        .toUpperCase()
-    )
-    .join("");
-
-}
-
-
-function formatRole(role) {
-
-  const roles = {
-
-    admin: "Administrator",
-
-    reviewer: "Reviewer",
-
-    coworker: "Coworker",
-
-    worker: "Worker",
-
-    waitlist: "Waitlist"
-
-  };
+  }
 
 
   return (
-    roles[role] ||
-    "Worker"
+    "Your account has not been activated for AI TRAINER EXPERT yet."
   );
 
 }
 
 
-/* ============================================================
-   GREETING
-============================================================ */
+/* =========================================================
+   SHOW LOGIN
+========================================================= */
 
-function updateClock() {
+function showLogin() {
 
-  const hour =
-    new Date()
-      .getHours();
+  hide($("appScreen"));
+
+  show($("authScreen"));
+
+  hide($("forgotView"));
+  hide($("newPasswordView"));
+
+  show($("loginView"));
+
+}
 
 
-  let greeting =
-    "Good evening";
+/* =========================================================
+   SHOW APP
+========================================================= */
+
+function showApp() {
+
+  hide($("authScreen"));
+
+  show($("appScreen"));
+
+}
 
 
-  if (
-    hour < 12
-  ) {
+/* =========================================================
+   POPULATE USER UI
+========================================================= */
 
-    greeting =
-      "Good morning";
+function populateUserUI() {
 
-  } else if (
-    hour < 18
-  ) {
+  const name =
+    currentProfile?.full_name ||
+    currentUser?.user_metadata?.full_name ||
+    currentUser?.email?.split("@")[0] ||
+    "User";
 
-    greeting =
-      "Good afternoon";
+
+  const email =
+    currentUser?.email ||
+    currentProfile?.email ||
+    "";
+
+
+  const role =
+    currentProfile?.role ||
+    "coworker";
+
+
+  const company =
+    currentProfile?.company_name ||
+    "AI TRAINER EXPERT";
+
+
+  const initials =
+    getInitials(name);
+
+
+  if ($("welcomeName"))
+    $("welcomeName").textContent =
+      name;
+
+
+  if ($("sidebarUserName"))
+    $("sidebarUserName").textContent =
+      name;
+
+
+  if ($("sidebarUserRole"))
+    $("sidebarUserRole").textContent =
+      formatRole(role);
+
+
+  if ($("topUserName"))
+    $("topUserName").textContent =
+      name;
+
+
+  if ($("topUserEmail"))
+    $("topUserEmail").textContent =
+      email;
+
+
+  if ($("sidebarAvatar"))
+    $("sidebarAvatar").textContent =
+      initials;
+
+
+  if ($("topAvatar"))
+    $("topAvatar").textContent =
+      initials;
+
+
+  /*
+   * Company name is taken from the
+   * profile rather than exposing
+   * administrator information.
+   */
+
+  const companyTitle =
+    document.querySelector(
+      ".company-title"
+    );
+
+
+  if (companyTitle) {
+
+    companyTitle.textContent =
+      company;
 
   }
 
 
-  const element =
-    $("greeting");
+  /*
+   * Admin menu is controlled by
+   * database role.
+   */
+
+  const adminButtons =
+    document.querySelectorAll(
+      ".admin-only"
+    );
 
 
-  if (element) {
+  adminButtons.forEach(button => {
 
-    element.textContent =
+    if (
+      String(role).toLowerCase() ===
+      "admin"
+    ) {
+
+      show(button);
+
+    } else {
+
+      hide(button);
+
+    }
+
+  });
+
+
+  $("access2d").textContent =
+    currentProfile?.access_2d
+      ? "YES"
+      : "NO";
+
+
+  $("access3d").textContent =
+    currentProfile?.access_3d
+      ? "YES"
+      : "NO";
+
+}
+
+
+/* =========================================================
+   INITIALS
+========================================================= */
+
+function getInitials(
+  name
+) {
+
+  const parts =
+    String(name)
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+
+
+  if (!parts.length)
+    return "U";
+
+
+  if (parts.length === 1)
+    return parts[0]
+      .substring(0, 2)
+      .toUpperCase();
+
+
+  return (
+    parts[0][0] +
+    parts[parts.length - 1][0]
+  ).toUpperCase();
+
+}
+
+
+/* =========================================================
+   ROLE FORMAT
+========================================================= */
+
+function formatRole(
+  role
+) {
+
+  return String(role)
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, c =>
+      c.toUpperCase()
+    );
+
+}
+
+
+/* =========================================================
+   GREETING
+========================================================= */
+
+function updateGreeting() {
+
+  const hour =
+    new Date().getHours();
+
+
+  let greeting =
+    "GOOD DAY";
+
+
+  if (hour < 12) {
+
+    greeting =
+      "GOOD MORNING";
+
+  } else if (hour < 18) {
+
+    greeting =
+      "GOOD AFTERNOON";
+
+  } else {
+
+    greeting =
+      "GOOD EVENING";
+
+  }
+
+
+  if ($("timeGreeting")) {
+
+    $("timeGreeting").textContent =
       greeting;
 
   }
@@ -1077,35 +1535,181 @@ function updateClock() {
 }
 
 
-/* ============================================================
-   TASKS
-============================================================ */
+/* =========================================================
+   DATE
+========================================================= */
 
-async function loadTasks() {
+function updateDate() {
 
-  if (!currentUser) {
+  const date =
+    new Date();
 
-    return;
+
+  if ($("currentDate")) {
+
+    $("currentDate").textContent =
+      date.toLocaleDateString(
+        undefined,
+        {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+          year: "numeric"
+        }
+      );
+
+  }
+
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function navigate(
+  view
+) {
+
+  const views = [
+    "dashboard",
+    "tasks",
+    "activity",
+    "admin"
+  ];
+
+
+  views.forEach(name => {
+
+    const element =
+      $(`${name}View`);
+
+    if (!element)
+      return;
+
+
+    if (name === view) {
+
+      show(element);
+
+    } else {
+
+      hide(element);
+
+    }
+
+  });
+
+
+  document
+    .querySelectorAll(".nav-item")
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.view === view
+      );
+
+    });
+
+
+  if (view === "tasks") {
+
+    loadTasks();
 
   }
 
 
-  try {
+  if (view === "activity") {
 
-    /*
-      Load tasks assigned to current user
-      OR unclaimed tasks assigned to no one.
-    */
+    loadActivity();
+
+  }
+
+
+  if (view === "admin") {
+
+    if (
+      currentProfile?.role !==
+      "admin"
+    ) {
+
+      toast(
+        "Administrator access required.",
+        "error"
+      );
+
+      navigate("dashboard");
+
+      return;
+    }
+
+
+    loadAdminUsers();
+
+  }
+
+}
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+async function loadDashboard() {
+
+  await loadTasks();
+
+}
+
+
+/* =========================================================
+   TASKS
+========================================================= */
+
+async function loadTasks() {
+
+  const containers = [
+    $("taskList"),
+    $("allTasksList")
+  ];
+
+
+  containers.forEach(container => {
+
+    if (container) {
+
+      container.innerHTML = `
+        <div class="loading-card">
+          <div class="loading-spinner"></div>
+          <p>Loading your work...</p>
+        </div>
+      `;
+
+    }
+
+  });
+
+
+  /*
+   * The schema uses task_assignments.
+   *
+   * We retrieve assignments for the
+   * currently logged-in user.
+   */
+
+  try {
 
     const {
       data,
       error
     } =
       await supabaseClient
-        .from("tasks")
+        .from("task_assignments")
         .select("*")
-        .or(
-          `assigned_to.eq.${currentUser.id},assigned_to.is.null`
+        .eq(
+          "user_id",
+          currentUser.id
         )
         .order(
           "created_at",
@@ -1118,401 +1722,49 @@ async function loadTasks() {
     if (error) {
 
       console.error(
-        "Task query error:",
+        "Task loading error:",
         error
       );
 
-      throw error;
 
+      renderEmptyTasks(
+        "No work is available right now. We are working hard to give you more work."
+      );
+
+
+      return;
     }
 
 
-    allTasks =
+    const tasks =
       data || [];
 
 
-    /*
-      Only display tasks that the user can actually access.
-    */
-
-    const accessible =
-      allTasks.filter(
-        task =>
-          task.status !== "completed" &&
-          canAccessTask(task)
-      );
+    $("assignedCount").textContent =
+      tasks.length;
 
 
-    renderTaskCards(
-      accessible
+    renderTasks(
+      $("taskList"),
+      tasks
     );
 
 
-    renderMyTasks(
-      allTasks
-    );
-
-
-    updateStats(
-      allTasks
+    renderTasks(
+      $("allTasksList"),
+      tasks
     );
 
 
   } catch (error) {
 
-    console.error(error);
-
-    showToast(
-      "Unable to load tasks.",
-      "error"
-    );
-
-  }
-
-}
-
-
-/* ============================================================
-   TASK ACCESS
-============================================================ */
-
-function canAccessTask(task) {
-
-  if (
-    currentProfile.role === "admin"
-  ) {
-
-    return true;
-
-  }
-
-
-  const type =
-    String(
-      task.task_type ||
-      task.type ||
-      ""
-    ).toLowerCase();
-
-
-  if (
-    type === "3d" &&
-    !currentProfile.access_3d
-  ) {
-
-    return false;
-
-  }
-
-
-  if (
-    type === "2d" &&
-    !currentProfile.access_2d
-  ) {
-
-    return false;
-
-  }
-
-
-  if (
-    type === "both" &&
-    (
-      !currentProfile.access_2d ||
-      !currentProfile.access_3d
-    )
-  ) {
-
-    return false;
-
-  }
-
-
-  return true;
-
-}
-
-
-/* ============================================================
-   TASK CARDS
-============================================================ */
-
-function renderTaskCards(tasks) {
-
-  const container =
-    $("taskList");
-
-  container.innerHTML =
-    "";
-
-
-  if (
-    !tasks.length
-  ) {
-
-    $("emptyTasks")
-      .classList
-      .remove("hidden");
-
-    return;
-
-  }
-
-
-  $("emptyTasks")
-    .classList
-    .add("hidden");
-
-
-  tasks.forEach(
-    task => {
-
-      const card =
-        createTaskCard(task);
-
-      container.appendChild(card);
-
-    }
-  );
-
-}
-
-
-function createTaskCard(task) {
-
-  const card =
-    document.createElement("div");
-
-
-  const type =
-    String(
-      task.task_type ||
-      task.type ||
-      "2d"
-    ).toLowerCase();
-
-
-  card.className =
-    `task-card task-${type}`;
-
-
-  const label =
-    type === "3d"
-      ? "3D LIDAR"
-      : type === "both"
-        ? "2D + 3D"
-        : "2D CAMERA";
-
-
-  const assigned =
-    task.assigned_to
-      ? "Assigned"
-      : "Available";
-
-
-  card.innerHTML = `
-
-    <div class="task-top">
-
-      <span class="task-type ${
-        type === "2d"
-          ? "type-2d"
-          : ""
-      }">
-        ${escapeHTML(label)}
-      </span>
-
-      <span class="task-type">
-        ${escapeHTML(assigned)}
-      </span>
-
-    </div>
-
-    <h3>
-      ${escapeHTML(
-        task.name ||
-        task.task_name ||
-        "Annotation task"
-      )}
-    </h3>
-
-    <div class="task-description">
-      ${escapeHTML(
-        task.description ||
-        "Annotation task ready for processing."
-      )}
-    </div>
-
-    <div class="task-meta">
-
-      <span>
-        TYPE:
-        <strong>${escapeHTML(label)}</strong>
-      </span>
-
-      <span>
-        STATUS:
-        <strong>${escapeHTML(
-          task.status || "assigned"
-        )}</strong>
-      </span>
-
-    </div>
-
-    <button
-      class="primary-button claim-button"
-      data-task-id="${task.id}"
-    >
-      ${
-        task.claimed_by === currentUser.id ||
-        task.assigned_to === currentUser.id
-          ? "Start tasking"
-          : "Claim task"
-      }
-    </button>
-
-  `;
-
-
-  const button =
-    card.querySelector(
-      ".claim-button"
-    );
-
-
-  button.addEventListener(
-    "click",
-    () => handleTaskAction(task)
-  );
-
-
-  return card;
-
-}
-
-
-/* ============================================================
-   CLAIM / START TASK
-============================================================ */
-
-async function handleTaskAction(task) {
-
-  /*
-    If already claimed by current user,
-    open workspace immediately.
-  */
-
-  if (
-    task.claimed_by === currentUser.id ||
-    task.assigned_to === currentUser.id
-  ) {
-
-    openWorkspace(task);
-
-    return;
-
-  }
-
-
-  /*
-    If someone else already claimed it,
-    stop.
-  */
-
-  if (
-    task.claimed_by &&
-    task.claimed_by !== currentUser.id
-  ) {
-
-    showToast(
-      "This task has already been claimed by another user.",
-      "error"
-    );
-
-    await loadTasks();
-
-    return;
-
-  }
-
-
-  try {
-
-    /*
-      Atomic-style update:
-      only update where claimed_by is null.
-
-      This prevents two workers from successfully
-      claiming the same task in normal concurrent use.
-    */
-
-    const {
-      data,
+    console.error(
       error
-    } =
-      await supabaseClient
-        .from("tasks")
-        .update({
-          claimed_by: currentUser.id,
-          claimed_at: new Date().toISOString(),
-          status: "in_progress"
-        })
-        .eq("id", task.id)
-        .is("claimed_by", null)
-        .select()
-        .single();
-
-
-    if (error) {
-
-      console.error(
-        "Claim error:",
-        error
-      );
-
-      showToast(
-        "The task could not be claimed. It may already be taken.",
-        "error"
-      );
-
-      await loadTasks();
-
-      return;
-
-    }
-
-
-    if (!data) {
-
-      showToast(
-        "Someone else claimed this task first.",
-        "error"
-      );
-
-      await loadTasks();
-
-      return;
-
-    }
-
-
-    await logActivity(
-      "claimed_task",
-      task.id,
-      `Claimed ${task.name}`
     );
 
 
-    openWorkspace(data);
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    showToast(
-      "Unable to claim task.",
-      "error"
+    renderEmptyTasks(
+      "No work is available right now. We are working hard to give you more work."
     );
 
   }
@@ -1520,292 +1772,270 @@ async function handleTaskAction(task) {
 }
 
 
-/* ============================================================
-   OPEN WORKSPACE
-============================================================ */
+/* =========================================================
+   RENDER TASKS
+========================================================= */
 
-function openWorkspace(task) {
+function renderTasks(
+  container,
+  tasks
+) {
 
-  const type =
-    String(
-      task.task_type ||
-      task.type ||
-      "2d"
-    ).toLowerCase();
-
-
-  /*
-    Final access check before workspace.
-
-    This is important for direct task links.
-  */
-
-  if (
-    !canAccessTask(task)
-  ) {
-
-    showToast(
-      "Access denied. Your account does not have permission for this task type.",
-      "error"
-    );
-
+  if (!container)
     return;
 
-  }
 
-
-  const params =
-    new URLSearchParams();
-
-
-  params.set(
-    "task",
-    task.id
-  );
-
-
-  params.set(
-    "mode",
-    type
-  );
-
-
-  window.location.href =
-    `workspace.html?${params.toString()}`;
-
-}
-
-
-/* ============================================================
-   MY TASKS
-============================================================ */
-
-function renderMyTasks(tasks) {
-
-  const container =
-    $("myTasksList");
-
-
-  container.innerHTML =
-    "";
-
-
-  const mine =
-    tasks.filter(
-      task =>
-        task.assigned_to === currentUser.id ||
-        task.claimed_by === currentUser.id
-    );
-
-
-  if (!mine.length) {
+  if (!tasks.length) {
 
     container.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">◌</div>
-        <h3>No tasks yet</h3>
-        <p>Your assigned tasks will appear here.</p>
+      <div class="empty-card">
+        <strong>Working hard to give you more work.</strong>
+        <br><br>
+        <span>
+          There are no tasks currently assigned to you.
+        </span>
       </div>
     `;
 
     return;
-
   }
 
 
-  mine.forEach(
-    task => {
+  container.innerHTML =
+    tasks.map(
+      task => {
 
-      const item =
-        document.createElement("div");
-
-      item.className =
-        "full-task-item";
-
-
-      const type =
-        String(
-          task.task_type ||
-          task.type ||
-          "2d"
-        ).toUpperCase();
+        const taskName =
+          task.task_name ||
+          task.name ||
+          task.title ||
+          "Annotation Task";
 
 
-      item.innerHTML = `
-
-        <div>
-
-          <strong>
-            ${escapeHTML(
-              task.name ||
-              "Annotation task"
-            )}
-          </strong>
-
-          <div
-            style="
-              margin-top:5px;
-              color:#64748b;
-              font-size:9px;
-            "
-          >
-            ${escapeHTML(type)}
-            •
-            ${escapeHTML(
-              task.status ||
-              "assigned"
-            )}
-          </div>
-
-        </div>
-
-        <button
-          class="secondary-button"
-        >
-          Open workspace
-        </button>
-
-      `;
+        const type =
+          String(
+            task.task_type ||
+            task.type ||
+            "2D"
+          ).toUpperCase();
 
 
-      item.querySelector(
-        "button"
-      ).addEventListener(
+        const status =
+          String(
+            task.status ||
+            "assigned"
+          );
+
+
+        return `
+          <article class="task-card">
+
+            <div class="task-info">
+
+              <h3>
+                ${escapeHTML(taskName)}
+              </h3>
+
+              <p>
+                Assigned annotation task
+              </p>
+
+              <div class="task-meta">
+
+                <span class="task-tag ${type === "3D"
+                  ? "purple"
+                  : "blue"}">
+                  ${escapeHTML(type)}
+                </span>
+
+                <span class="task-tag green">
+                  ${escapeHTML(status)}
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <button
+              class="claim-button"
+              data-task-id="${escapeHTML(
+                task.task_id ||
+                task.id ||
+                ""
+              )}"
+              data-task-type="${escapeHTML(type)}"
+            >
+              Start task
+            </button>
+
+          </article>
+        `;
+
+      }
+    )
+    .join("");
+
+
+  container
+    .querySelectorAll(".claim-button")
+    .forEach(button => {
+
+      button.addEventListener(
         "click",
-        () => openWorkspace(task)
+        () => {
+
+          startTask(
+            button.dataset.taskId,
+            button.dataset.taskType
+          );
+
+        }
       );
 
-
-      container.appendChild(item);
-
-    }
-  );
+    });
 
 }
 
 
-/* ============================================================
-   STATS
-============================================================ */
+/* =========================================================
+   EMPTY TASKS
+========================================================= */
 
-function updateStats(tasks) {
+function renderEmptyTasks(
+  message
+) {
 
-  const assigned =
-    tasks.filter(
-      t =>
-        t.assigned_to === currentUser.id ||
-        t.claimed_by === currentUser.id
+  const html = `
+    <div class="empty-card">
+      ${escapeHTML(message)}
+    </div>
+  `;
+
+
+  if ($("taskList"))
+    $("taskList").innerHTML =
+      html;
+
+
+  if ($("allTasksList"))
+    $("allTasksList").innerHTML =
+      html;
+
+
+  if ($("assignedCount"))
+    $("assignedCount").textContent =
+      "0";
+
+}
+
+
+/* =========================================================
+   START TASK
+========================================================= */
+
+async function startTask(
+  taskId,
+  taskType
+) {
+
+  if (!taskId) {
+
+    toast(
+      "This task does not have a valid task ID.",
+      "error"
     );
 
-
-  const completed =
-    assigned.filter(
-      t =>
-        t.status === "completed"
-    );
+    return;
+  }
 
 
-  $("assignedCount")
-    .textContent =
-      assigned.length;
-
-
-  $("completedCount")
-    .textContent =
-      completed.length;
+  const type =
+    String(taskType)
+      .toUpperCase();
 
 
   /*
-    Annotation total is loaded separately.
-  */
+   * HARD ACCESS CHECK
+   *
+   * A 3D user without 3D access
+   * cannot open a 3D task.
+   */
 
-  loadAnnotationCount();
+  if (
+    type === "3D" &&
+    !currentProfile?.access_3d
+  ) {
 
-}
-
-
-async function loadAnnotationCount() {
-
-  try {
-
-    const {
-      count,
-      error
-    } =
-      await supabaseClient
-        .from("annotations")
-        .select(
-          "id",
-          {
-            count: "exact",
-            head: true
-          }
-        )
-        .eq(
-          "created_by",
-          currentUser.id
-        );
-
-
-    if (error) {
-
-      console.warn(
-        "Annotation count:",
-        error
-      );
-
-      return;
-
-    }
-
-
-    $("boxCount")
-      .textContent =
-      count || 0;
-
-  } catch (error) {
-
-    console.warn(error);
-
-  }
-
-}
-
-
-/* ============================================================
-   ACTIVITY
-============================================================ */
-
-async function logActivity(
-  action,
-  taskId,
-  description
-) {
-
-  try {
-
-    await supabaseClient
-      .from("activity_logs")
-      .insert({
-        user_id: currentUser.id,
-        task_id: taskId || null,
-        action,
-        description
-      });
-
-  } catch (error) {
-
-    console.warn(
-      "Activity log error:",
-      error
+    toast(
+      "3D access has not been granted to your account.",
+      "error"
     );
 
+    return;
   }
+
+
+  if (
+    type === "2D" &&
+    !currentProfile?.access_2d
+  ) {
+
+    toast(
+      "2D access has not been granted to your account.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  /*
+   * Store a short-lived task launch
+   * record in sessionStorage.
+   */
+
+  sessionStorage.setItem(
+    "aiTrainerTask",
+    JSON.stringify({
+      taskId,
+      taskType: type,
+      userId: currentUser.id
+    })
+  );
+
+
+  /*
+   * Workspace page.
+   */
+
+  window.location.href =
+    "workspace.html";
 
 }
 
 
+/* =========================================================
+   ACTIVITY
+========================================================= */
+
 async function loadActivity() {
+
+  const container =
+    $("activityList");
+
+
+  if (!container)
+    return;
+
+
+  container.innerHTML = `
+    <div class="loading-card">
+      <div class="loading-spinner"></div>
+      <p>Loading activity...</p>
+    </div>
+  `;
+
 
   try {
 
@@ -1814,7 +2044,7 @@ async function loadActivity() {
       error
     } =
       await supabaseClient
-        .from("activity_logs")
+        .from("audit_log")
         .select("*")
         .eq(
           "user_id",
@@ -1826,1119 +2056,116 @@ async function loadActivity() {
             ascending: false
           }
         )
-        .limit(30);
+        .limit(20);
 
 
     if (error) {
 
-      console.warn(error);
+      console.error(
+        "Activity error:",
+        error
+      );
+
+
+      container.innerHTML =
+        `<div class="empty-card">
+          No recent activity.
+        </div>`;
 
       return;
-
     }
 
 
-    const container =
-      $("activityList");
+    if (!data?.length) {
+
+      container.innerHTML =
+        `<div class="empty-card">
+          No recent activity.
+        </div>`;
+
+      return;
+    }
 
 
     container.innerHTML =
-      "";
+      data.map(
+        item => {
 
+          return `
+            <div class="activity-item">
 
-    if (
-      !data ||
-      !data.length
-    ) {
+              <strong>
+                ${escapeHTML(
+                  item.action ||
+                  item.event ||
+                  "Activity"
+                )}
+              </strong>
 
-      container.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-icon">◷</div>
-          <h3>No activity yet</h3>
-          <p>Your task activity will appear here.</p>
-        </div>
-      `;
+              <span>
+                ${formatDateTime(
+                  item.created_at
+                )}
+              </span>
 
-      return;
+            </div>
+          `;
 
-    }
+        }
+      ).join("");
 
-
-    data.forEach(
-      item => {
-
-        const element =
-          document.createElement("div");
-
-        element.className =
-          "activity-item";
-
-
-        element.innerHTML = `
-
-          <div class="activity-dot"></div>
-
-          <div>
-
-            <strong>
-              ${escapeHTML(
-                item.description ||
-                item.action ||
-                "Activity"
-              )}
-            </strong>
-
-            <span>
-              ${formatDateTime(
-                item.created_at
-              )}
-            </span>
-
-          </div>
-
-        `;
-
-
-        container.appendChild(
-          element
-        );
-
-      }
-    );
 
   } catch (error) {
 
-    console.warn(error);
+    console.error(
+      error
+    );
+
+
+    container.innerHTML =
+      `<div class="empty-card">
+        No recent activity.
+      </div>`;
 
   }
 
 }
 
 
-/* ============================================================
-   NAVIGATION
-============================================================ */
+/* =========================================================
+   ADMIN USERS
+========================================================= */
 
-function bindNavigationEvents() {
-
-  qsa(".nav-item")
-    .forEach(
-      button => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            const page =
-              button.dataset.page;
-
-            navigateToPage(page);
-
-          }
-        );
-
-      }
-    );
-
-}
-
-
-function navigateToPage(page) {
+async function loadAdminUsers() {
 
   if (
-    page === "admin" &&
-    currentProfile.role !== "admin"
+    currentProfile?.role !==
+    "admin"
   ) {
 
-    showToast(
+    toast(
       "Administrator access required.",
       "error"
     );
 
     return;
-
   }
 
-
-  currentPage =
-    page;
-
-
-  qsa(".nav-item")
-    .forEach(
-      button => {
-
-        button.classList.toggle(
-          "active",
-          button.dataset.page === page
-        );
-
-      }
-    );
-
-
-  qsa(".page")
-    .forEach(
-      element => {
-
-        element.classList.remove(
-          "active-page"
-        );
-
-      }
-    );
-
-
-  const target =
-    $(`${page}Page`);
-
-
-  if (target) {
-
-    target.classList.add(
-      "active-page"
-    );
-
-  }
-
-
-  const names = {
-
-    home: "Annotation Operations",
-
-    tasks: "My Tasks",
-
-    activity: "Activity",
-
-    admin: "Administration"
-
-  };
-
-
-  $("pageLocation")
-    .textContent =
-      names[page] ||
-      "Annotation Operations";
-
-
-  if (
-    page === "admin"
-  ) {
-
-    loadAdminData();
-
-  }
-
-}
-
-
-/* ============================================================
-   ADMIN
-============================================================ */
-
-function bindAdminEvents() {
-
-  qsa(".admin-tab")
-    .forEach(
-      button => {
-
-        button.addEventListener(
-          "click",
-          () => {
-
-            qsa(".admin-tab")
-              .forEach(
-                b =>
-                  b.classList.remove(
-                    "active"
-                  )
-              );
-
-
-            button.classList.add(
-              "active"
-            );
-
-
-            const tab =
-              button.dataset.adminTab;
-
-
-            qsa(".admin-panel")
-              .forEach(
-                panel =>
-                  panel.classList.remove(
-                    "active"
-                  )
-              );
-
-
-            const panel =
-              $(
-                `admin${
-                  tab.charAt(0)
-                    .toUpperCase() +
-                  tab.slice(1)
-                }`
-              );
-
-
-            if (panel) {
-
-              panel.classList.add(
-                "active"
-              );
-
-            }
-
-          }
-        );
-
-      }
-    );
-
-
-  $("createTaskForm")
-    .addEventListener(
-      "submit",
-      createTask
-    );
-
-
-  $("refreshUsers")
-    .addEventListener(
-      "click",
-      loadAdminUsers
-    );
-
-}
-
-
-async function loadAdminData() {
-
-  if (
-    currentProfile.role !== "admin"
-  ) {
-
-    return;
-
-  }
-
-
-  await Promise.all([
-    loadAdminUsers(),
-    loadAdminTasks(),
-    loadAccessRequests()
-  ]);
-
-}
-
-
-/* ============================================================
-   ADMIN USERS
-============================================================ */
-
-async function loadAdminUsers() {
-
-  try {
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("profiles")
-        .select("*")
-        .order(
-          "created_at",
-          {
-            ascending: false
-          }
-        );
-
-
-    if (error) {
-
-      throw error;
-
-    }
-
-
-    allUsers =
-      data || [];
-
-
-    renderUsersTable(
-      allUsers
-    );
-
-
-    populateAssigneeSelect(
-      allUsers
-    );
-
-
-    const total =
-      allUsers.length;
-
-
-    const workers =
-      allUsers.filter(
-        u =>
-          u.role === "worker" ||
-          u.role === "coworker"
-      ).length;
-
-
-    const reviewers =
-      allUsers.filter(
-        u =>
-          u.role === "reviewer"
-      ).length;
-
-
-    const waitlist =
-      allUsers.filter(
-        u =>
-          u.role === "waitlist"
-      ).length;
-
-
-    $("adminTotalUsers")
-      .textContent =
-      total;
-
-
-    $("adminWorkers")
-      .textContent =
-      workers;
-
-
-    $("adminReviewers")
-      .textContent =
-      reviewers;
-
-
-    $("adminWaitlist")
-      .textContent =
-      waitlist;
-
-
-  } catch (error) {
-
-    console.error(
-      "Admin users:",
-      error
-    );
-
-    showToast(
-      "Unable to load users.",
-      "error"
-    );
-
-  }
-
-}
-
-
-/* ============================================================
-   USERS TABLE
-============================================================ */
-
-function renderUsersTable(users) {
 
   const container =
-    $("usersTable");
+    $("adminUsersList");
+
+
+  if (!container)
+    return;
 
 
   container.innerHTML = `
-
-    <div class="user-row header">
-
-      <div>User</div>
-      <div>Role</div>
-      <div>Status</div>
-      <div>Access</div>
-      <div>Actions</div>
-
+    <div class="loading-card">
+      <div class="loading-spinner"></div>
+      <p>Loading team members...</p>
     </div>
-
   `;
-
-
-  users.forEach(
-    user => {
-
-      const row =
-        document.createElement("div");
-
-      row.className =
-        "user-row";
-
-
-      const isSelf =
-        user.id === currentUser.id;
-
-
-      row.innerHTML = `
-
-        <div>
-
-          <strong>
-            ${escapeHTML(
-              user.full_name ||
-              "Unnamed"
-            )}
-          </strong>
-
-          <div
-            style="
-              color:#64748b;
-              margin-top:3px;
-              font-size:8px;
-            "
-          >
-            ${escapeHTML(
-              user.email ||
-              ""
-            )}
-          </div>
-
-        </div>
-
-
-        <div>
-
-          <select
-            class="role-select"
-            data-user-id="${user.id}"
-            ${
-              isSelf
-                ? "disabled"
-                : ""
-            }
-          >
-
-            ${roleOption(
-              "worker",
-              user.role
-            )}
-
-            ${roleOption(
-              "coworker",
-              user.role
-            )}
-
-            ${roleOption(
-              "reviewer",
-              user.role
-            )}
-
-            ${roleOption(
-              "admin",
-              user.role
-            )}
-
-            ${roleOption(
-              "waitlist",
-              user.role
-            )}
-
-          </select>
-
-        </div>
-
-
-        <div>
-
-          <span class="access-pill ${
-            user.status === "active"
-              ? "yes"
-              : "no"
-          }">
-
-            ${escapeHTML(
-              user.status ||
-              "waitlist"
-            )}
-
-          </span>
-
-        </div>
-
-
-        <div>
-
-          <span
-            class="access-pill ${
-              user.access_2d
-                ? "yes"
-                : "no"
-            }"
-          >
-            2D
-          </span>
-
-          <span
-            class="access-pill ${
-              user.access_3d
-                ? "yes"
-                : "no"
-            }"
-          >
-            3D
-          </span>
-
-        </div>
-
-
-        <div class="user-actions">
-
-          ${
-            !isSelf
-              ? `
-                <button
-                  class="small-button"
-                  data-action="access"
-                  data-id="${user.id}"
-                >
-                  Access
-                </button>
-
-                <button
-                  class="small-button danger"
-                  data-action="disable"
-                  data-id="${user.id}"
-                >
-                  ${
-                    user.status === "disabled"
-                      ? "Enable"
-                      : "Disable"
-                  }
-                </button>
-              `
-              : `
-                <span
-                  style="
-                    color:#64748b;
-                    font-size:8px;
-                  "
-                >
-                  Current account
-                </span>
-              `
-          }
-
-        </div>
-
-      `;
-
-
-      const roleSelect =
-        row.querySelector(
-          ".role-select"
-        );
-
-
-      if (roleSelect) {
-
-        roleSelect.addEventListener(
-          "change",
-          event =>
-            updateUserRole(
-              user.id,
-              event.target.value
-            )
-        );
-
-      }
-
-
-      row.querySelectorAll(
-        "[data-action]"
-      ).forEach(
-        button => {
-
-          button.addEventListener(
-            "click",
-            () => {
-
-              const action =
-                button.dataset.action;
-
-              const id =
-                button.dataset.id;
-
-
-              if (
-                action === "access"
-              ) {
-
-                openAccessModal(
-                  id
-                );
-
-              }
-
-
-              if (
-                action === "disable"
-              ) {
-
-                toggleUserStatus(
-                  id
-                );
-
-              }
-
-            }
-          );
-
-        }
-      );
-
-
-      container.appendChild(
-        row
-      );
-
-    }
-  );
-
-}
-
-
-function roleOption(
-  role,
-  selected
-) {
-
-  return `
-    <option
-      value="${role}"
-      ${
-        role === selected
-          ? "selected"
-          : ""
-      }
-    >
-      ${formatRole(role)}
-    </option>
-  `;
-
-}
-
-
-/* ============================================================
-   UPDATE ROLE
-============================================================ */
-
-async function updateUserRole(
-  userId,
-  role
-) {
-
-  try {
-
-    const {
-      error
-    } =
-      await supabaseClient
-        .from("profiles")
-        .update({
-          role
-        })
-        .eq(
-          "id",
-          userId
-        );
-
-
-    if (error) {
-
-      throw error;
-
-    }
-
-
-    await logAdminAudit(
-      "role_changed",
-      userId,
-      `Role changed to ${role}`
-    );
-
-
-    showToast(
-      "User role updated.",
-      "success"
-    );
-
-
-    await loadAdminUsers();
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    showToast(
-      error.message ||
-      "Unable to update role.",
-      "error"
-    );
-
-  }
-
-}
-
-
-/* ============================================================
-   USER STATUS
-============================================================ */
-
-async function toggleUserStatus(
-  userId
-) {
-
-  const user =
-    allUsers.find(
-      u => u.id === userId
-    );
-
-
-  if (!user) {
-
-    return;
-
-  }
-
-
-  const newStatus =
-    user.status === "disabled"
-      ? "active"
-      : "disabled";
-
-
-  try {
-
-    const {
-      error
-    } =
-      await supabaseClient
-        .from("profiles")
-        .update({
-          status: newStatus
-        })
-        .eq(
-          "id",
-          userId
-        );
-
-
-    if (error) {
-
-      throw error;
-
-    }
-
-
-    await logAdminAudit(
-      "status_changed",
-      userId,
-      `User status changed to ${newStatus}`
-    );
-
-
-    showToast(
-      `User ${newStatus === "active" ? "enabled" : "disabled"}.`,
-      "success"
-    );
-
-
-    await loadAdminUsers();
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    showToast(
-      error.message ||
-      "Unable to change user status.",
-      "error"
-    );
-
-  }
-
-}
-
-
-/* ============================================================
-   ACCESS MODAL
-============================================================ */
-
-function openAccessModal(
-  userId
-) {
-
-  const user =
-    allUsers.find(
-      u => u.id === userId
-    );
-
-
-  if (!user) {
-
-    return;
-
-  }
-
-
-  $("modalContent").innerHTML = `
-
-    <span class="eyebrow">
-      PERMISSIONS
-    </span>
-
-    <h2>
-      ${escapeHTML(
-        user.full_name ||
-        "User"
-      )}
-    </h2>
-
-    <p>
-      Select which annotation environments
-      this user may access.
-    </p>
-
-
-    <div
-      style="
-        display:grid;
-        gap:10px;
-        margin:20px 0;
-      "
-    >
-
-      <label
-        style="
-          display:flex;
-          gap:10px;
-          align-items:center;
-          padding:15px;
-          border:1px solid rgba(255,255,255,.08);
-          border-radius:10px;
-        "
-      >
-
-        <input
-          id="access2d"
-          type="checkbox"
-          ${
-            user.access_2d
-              ? "checked"
-              : ""
-          }
-        >
-
-        <span>
-          <strong>2D Camera</strong>
-          <small
-            style="
-              display:block;
-              margin-top:3px;
-              color:#64748b;
-            "
-          >
-            Seven-camera 2D annotation
-          </small>
-        </span>
-
-      </label>
-
-
-      <label
-        style="
-          display:flex;
-          gap:10px;
-          align-items:center;
-          padding:15px;
-          border:1px solid rgba(255,255,255,.08);
-          border-radius:10px;
-        "
-      >
-
-        <input
-          id="access3d"
-          type="checkbox"
-          ${
-            user.access_3d
-              ? "checked"
-              : ""
-          }
-        >
-
-        <span>
-          <strong>3D LiDAR</strong>
-          <small
-            style="
-              display:block;
-              margin-top:3px;
-              color:#64748b;
-            "
-          >
-            LiDAR cuboid annotation
-          </small>
-        </span>
-
-      </label>
-
-    </div>
-
-
-    <button
-      id="saveAccessButton"
-      class="primary-button"
-      style="width:100%;"
-    >
-      Save permissions
-    </button>
-
-  `;
-
-
-  $("saveAccessButton")
-    .addEventListener(
-      "click",
-      () =>
-        saveUserAccess(
-          userId
-        )
-    );
-
-
-  openModal();
-
-}
-
-
-async function saveUserAccess(
-  userId
-) {
-
-  const access2d =
-    $("access2d").checked;
-
-  const access3d =
-    $("access3d").checked;
-
-
-  try {
-
-    const {
-      error
-    } =
-      await supabaseClient
-        .from("profiles")
-        .update({
-          access_2d: access2d,
-          access_3d: access3d
-        })
-        .eq(
-          "id",
-          userId
-        );
-
-
-    if (error) {
-
-      throw error;
-
-    }
-
-
-    await logAdminAudit(
-      "access_changed",
-      userId,
-      `2D=${access2d}, 3D=${access3d}`
-    );
-
-
-    closeModal();
-
-
-    showToast(
-      "Access permissions updated.",
-      "success"
-    );
-
-
-    await loadAdminUsers();
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    showToast(
-      error.message ||
-      "Unable to update access.",
-      "error"
-    );
-
-  }
-
-}
-
-
-/* ============================================================
-   CREATE TASK
-============================================================ */
-
-async function createTask(
-  event
-) {
-
-  event.preventDefault();
-
-
-  const name =
-    $("taskName")
-      .value
-      .trim();
-
-  const type =
-    $("taskType")
-      .value;
-
-  const assignee =
-    $("taskAssignee")
-      .value ||
-      null;
-
-  const link =
-    $("taskLink")
-      .value
-      .trim() ||
-      null;
-
-  const description =
-    $("taskDescription")
-      .value
-      .trim();
-
-
-  if (!name) {
-
-    showToast(
-      "Enter a task name.",
-      "error"
-    );
-
-    return;
-
-  }
 
 
   try {
@@ -2948,593 +2175,228 @@ async function createTask(
       error
     } =
       await supabaseClient
-        .from("tasks")
-        .insert({
-          name,
-          task_type: type,
-          assigned_to: assignee,
-          status: "assigned",
-          description,
-          task_link: link,
-          created_by: currentUser.id
-        })
-        .select()
-        .single();
+        .from("profiles")
+        .select(
+          `
+          id,
+          email,
+          full_name,
+          role,
+          status,
+          access_2d,
+          access_3d,
+          company_name
+          `
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false
+          }
+        );
 
 
     if (error) {
 
-      throw error;
+      console.error(
+        "Admin users error:",
+        error
+      );
 
+
+      container.innerHTML =
+        `<div class="empty-card">
+          Unable to load team members.
+        </div>`;
+
+      return;
     }
 
 
-    await logActivity(
-      "created_task",
-      data.id,
-      `Created task ${name}`
-    );
+    if (!data?.length) {
+
+      container.innerHTML =
+        `<div class="empty-card">
+          No team members found.
+        </div>`;
+
+      return;
+    }
 
 
-    $("createTaskForm")
-      .reset();
+    container.innerHTML =
+      data.map(
+        user => {
+
+          const initials =
+            getInitials(
+              user.full_name ||
+              user.email ||
+              "U"
+            );
 
 
-    showToast(
-      "Task created successfully.",
-      "success"
-    );
+          return `
+            <div class="admin-user">
+
+              <div class="admin-user-main">
+
+                <div class="avatar">
+                  ${escapeHTML(initials)}
+                </div>
+
+                <div class="admin-user-name">
+
+                  <strong>
+                    ${escapeHTML(
+                      user.full_name ||
+                      "Unnamed user"
+                    )}
+                  </strong>
+
+                  <span>
+                    ${escapeHTML(
+                      user.email || ""
+                    )}
+                  </span>
+
+                </div>
+
+              </div>
 
 
-    await loadAdminTasks();
+              <div class="admin-user-badges">
+
+                <span
+                  class="badge"
+                  style="
+                    background:rgba(139,92,246,.1);
+                    color:#c4b5fd;
+                  "
+                >
+                  ${escapeHTML(
+                    user.role ||
+                    "coworker"
+                  )}
+                </span>
 
 
-    await loadTasks();
+                <span
+                  class="badge"
+                  style="
+                    background:rgba(34,197,94,.1);
+                    color:#86efac;
+                  "
+                >
+                  ${escapeHTML(
+                    user.status ||
+                    "unknown"
+                  )}
+                </span>
+
+
+                ${
+                  user.access_2d
+                    ? `
+                      <span
+                        class="badge"
+                        style="
+                          background:rgba(56,189,248,.1);
+                          color:#7dd3fc;
+                        "
+                      >
+                        2D
+                      </span>
+                    `
+                    : ""
+                }
+
+
+                ${
+                  user.access_3d
+                    ? `
+                      <span
+                        class="badge"
+                        style="
+                          background:rgba(245,158,11,.1);
+                          color:#fcd34d;
+                        "
+                      >
+                        3D
+                      </span>
+                    `
+                    : ""
+                }
+
+              </div>
+
+            </div>
+          `;
+
+        }
+      ).join("");
 
 
   } catch (error) {
 
     console.error(
-      "Create task error:",
       error
     );
 
-    showToast(
-      error.message ||
-      "Unable to create task.",
-      "error"
-    );
+
+    container.innerHTML =
+      `<div class="empty-card">
+        Unable to load team members.
+      </div>`;
 
   }
 
 }
 
 
-/* ============================================================
-   ASSIGNEE SELECT
-============================================================ */
-
-function populateAssigneeSelect(
-  users
-) {
-
-  const select =
-    $("taskAssignee");
-
-
-  select.innerHTML =
-    `<option value="">
-      Select worker
-    </option>`;
-
-
-  users
-    .filter(
-      user =>
-        user.status === "active" &&
-        (
-          user.role === "worker" ||
-          user.role === "coworker" ||
-          user.role === "reviewer"
-        )
-    )
-    .forEach(
-      user => {
-
-        const option =
-          document.createElement(
-            "option"
-          );
-
-
-        option.value =
-          user.id;
-
-
-        option.textContent =
-          `${user.full_name || "User"} — ${user.email || ""}`;
-
-
-        select.appendChild(
-          option
-        );
-
-      }
-    );
-
-}
-
-
-/* ============================================================
-   ADMIN TASKS
-============================================================ */
-
-async function loadAdminTasks() {
-
-  try {
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("tasks")
-        .select("*")
-        .order(
-          "created_at",
-          {
-            ascending: false
-          }
-        );
-
-
-    if (error) {
-
-      throw error;
-
-    }
-
-
-    const container =
-      $("adminTasksTable");
-
-
-    container.innerHTML = `
-
-      <div class="user-row header">
-
-        <div>Task</div>
-        <div>Type</div>
-        <div>Status</div>
-        <div>Assigned</div>
-        <div>Action</div>
-
-      </div>
-
-    `;
-
-
-    (data || [])
-      .forEach(
-        task => {
-
-          const row =
-            document.createElement(
-              "div"
-            );
-
-
-          row.className =
-            "user-row";
-
-
-          const assigned =
-            allUsers.find(
-              u =>
-                u.id === task.assigned_to
-            );
-
-
-          row.innerHTML = `
-
-            <div>
-              <strong>
-                ${escapeHTML(
-                  task.name ||
-                  "Task"
-                )}
-              </strong>
-            </div>
-
-            <div>
-              ${escapeHTML(
-                String(
-                  task.task_type ||
-                  ""
-                ).toUpperCase()
-              )}
-            </div>
-
-            <div>
-              ${escapeHTML(
-                task.status ||
-                "assigned"
-              )}
-            </div>
-
-            <div>
-              ${
-                assigned
-                  ? escapeHTML(
-                      assigned.full_name ||
-                      assigned.email
-                    )
-                  : "Unassigned"
-              }
-            </div>
-
-            <div>
-
-              <button
-                class="small-button danger"
-                data-delete-task="${task.id}"
-              >
-                Delete
-              </button>
-
-            </div>
-
-          `;
-
-
-          row.querySelector(
-            "[data-delete-task]"
-          ).addEventListener(
-            "click",
-            () =>
-              deleteTask(
-                task.id
-              )
-          );
-
-
-          container.appendChild(
-            row
-          );
-
-        }
-      );
-
-
-  } catch (error) {
-
-    console.error(error);
-
-  }
-
-}
-
-
-/* ============================================================
-   DELETE TASK
-============================================================ */
-
-async function deleteTask(
-  taskId
-) {
-
-  if (
-    !confirm(
-      "Delete this task?"
-    )
-  ) {
-
-    return;
-
-  }
-
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+async function handleLogout() {
 
   try {
 
     const {
       error
     } =
-      await supabaseClient
-        .from("tasks")
-        .delete()
-        .eq(
-          "id",
-          taskId
-        );
+      await supabaseClient.auth
+        .signOut();
 
 
     if (error) {
 
-      throw error;
-
-    }
-
-
-    showToast(
-      "Task deleted.",
-      "success"
-    );
-
-
-    await loadAdminTasks();
-
-    await loadTasks();
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    showToast(
-      error.message ||
-      "Unable to delete task.",
-      "error"
-    );
-
-  }
-
-}
-
-
-/* ============================================================
-   ACCESS REQUESTS
-============================================================ */
-
-async function loadAccessRequests() {
-
-  try {
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from("access_requests")
-        .select("*")
-        .order(
-          "created_at",
-          {
-            ascending: false
-          }
-        );
-
-
-    if (error) {
-
-      console.warn(
-        "Access request error:",
+      console.error(
+        "Logout error:",
         error
       );
 
       return;
-
     }
 
 
-    const container =
-      $("requestsTable");
+    currentUser = null;
+    currentProfile = null;
+    currentSession = null;
 
 
-    container.innerHTML =
-      "";
-
-
-    if (
-      !data ||
-      !data.length
-    ) {
-
-      container.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-icon">✓</div>
-          <h3>No access requests</h3>
-          <p>There are no pending requests.</p>
-        </div>
-      `;
-
-      return;
-
-    }
-
-
-    data.forEach(
-      request => {
-
-        const row =
-          document.createElement(
-            "div"
-          );
-
-
-        row.className =
-          "user-row";
-
-
-        row.style.gridTemplateColumns =
-          "2fr 1fr 1fr 1.5fr";
-
-
-        row.innerHTML = `
-
-          <div>
-
-            <strong>
-              ${escapeHTML(
-                request.email ||
-                "Unknown"
-              )}
-            </strong>
-
-            <div
-              style="
-                color:#64748b;
-                margin-top:3px;
-                font-size:8px;
-              "
-            >
-              ${escapeHTML(
-                request.message ||
-                ""
-              )}
-            </div>
-
-          </div>
-
-          <div>
-            ${escapeHTML(
-              request.requested_role ||
-              "worker"
-            )}
-          </div>
-
-          <div>
-            ${escapeHTML(
-              request.status ||
-              "pending"
-            )}
-          </div>
-
-          <div>
-
-            ${
-              request.status === "pending"
-                ? `
-                  <button
-                    class="small-button"
-                    data-approve="${request.id}"
-                  >
-                    Approve
-                  </button>
-
-                  <button
-                    class="small-button danger"
-                    data-reject="${request.id}"
-                  >
-                    Reject
-                  </button>
-                `
-                : "Processed"
-            }
-
-          </div>
-
-        `;
-
-
-        const approve =
-          row.querySelector(
-            "[data-approve]"
-          );
-
-
-        if (approve) {
-
-          approve.addEventListener(
-            "click",
-            () =>
-              processRequest(
-                request.id,
-                "approved"
-              )
-          );
-
-        }
-
-
-        const reject =
-          row.querySelector(
-            "[data-reject]"
-          );
-
-
-        if (reject) {
-
-          reject.addEventListener(
-            "click",
-            () =>
-              processRequest(
-                request.id,
-                "rejected"
-              )
-          );
-
-        }
-
-
-        container.appendChild(
-          row
-        );
-
-      }
+    sessionStorage.removeItem(
+      "aiTrainerTask"
     );
+
+
+    showLogin();
 
 
   } catch (error) {
 
-    console.error(error);
-
-  }
-
-}
-
-
-/* ============================================================
-   PROCESS REQUEST
-============================================================ */
-
-async function processRequest(
-  requestId,
-  status
-) {
-
-  try {
-
-    const {
+    console.error(
       error
-    } =
-      await supabaseClient
-        .from("access_requests")
-        .update({
-          status,
-          reviewed_by: currentUser.id,
-          reviewed_at:
-            new Date().toISOString()
-        })
-        .eq(
-          "id",
-          requestId
-        );
-
-
-    if (error) {
-
-      throw error;
-
-    }
-
-
-    showToast(
-      `Request ${status}.`,
-      "success"
-    );
-
-
-    await loadAccessRequests();
-
-
-  } catch (error) {
-
-    console.error(error);
-
-    showToast(
-      error.message ||
-      "Unable to process request.",
-      "error"
     );
 
   }
@@ -3542,206 +2404,55 @@ async function processRequest(
 }
 
 
-/* ============================================================
-   ADMIN AUDIT
-============================================================ */
+/* =========================================================
+   SECURITY HELPERS
+========================================================= */
 
-async function logAdminAudit(
-  action,
-  targetUser,
-  description
+function escapeHTML(
+  value
 ) {
 
-  try {
-
-    await supabaseClient
-      .from("activity_logs")
-      .insert({
-        user_id: currentUser.id,
-        action,
-        description:
-          `${description} (${targetUser})`
-      });
-
-  } catch (error) {
-
-    console.warn(error);
-
-  }
+  return String(
+    value ?? ""
+  )
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 
 }
 
-
-/* ============================================================
-   MODAL
-============================================================ */
-
-function openModal() {
-
-  $("modalOverlay")
-    .classList
-    .remove("hidden");
-
-}
-
-
-$("closeModal")
-  .addEventListener(
-    "click",
-    closeModal
-  );
-
-
-$("modalOverlay")
-  .addEventListener(
-    "click",
-    event => {
-
-      if (
-        event.target ===
-        $("modalOverlay")
-      ) {
-
-        closeModal();
-
-      }
-
-    }
-  );
-
-
-function closeModal() {
-
-  $("modalOverlay")
-    .classList
-    .add("hidden");
-
-}
-
-
-/* ============================================================
-   TOAST
-============================================================ */
-
-function showToast(
-  message,
-  type = "success"
-) {
-
-  const toast =
-    $("toast");
-
-
-  $("toastText")
-    .textContent =
-      message;
-
-
-  $("toastIcon")
-    .textContent =
-      type === "error"
-        ? "!"
-        : "✓";
-
-
-  toast
-    .classList
-    .remove("hidden");
-
-
-  clearTimeout(
-    window.toastTimer
-  );
-
-
-  window.toastTimer =
-    setTimeout(
-      () => {
-
-        toast
-          .classList
-          .add("hidden");
-
-      },
-      3500
-    );
-
-}
-
-
-/* ============================================================
-   LOGOUT
-============================================================ */
-
-async function logout() {
-
-  try {
-
-    await supabaseClient
-      .auth
-      .signOut();
-
-  } catch (error) {
-
-    console.error(error);
-
-  }
-
-
-  currentUser = null;
-
-  currentProfile = null;
-
-  showLoginScreen();
-
-}
-
-
-/* ============================================================
-   HELPERS
-============================================================ */
 
 function formatDateTime(
   value
 ) {
 
-  if (!value) {
+  if (!value)
+    return "";
+
+
+  const date =
+    new Date(value);
+
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
 
     return "";
 
   }
 
 
-  return new Date(value)
-    .toLocaleString();
-
-}
-
-
-function escapeHTML(value) {
-
-  return String(
-    value ?? ""
-  )
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
-    .replaceAll(
-      "'",
-      "&#039;"
-    );
+  return date.toLocaleString(
+    undefined,
+    {
+      dateStyle: "medium",
+      timeStyle: "short"
+    }
+  );
 
 }
