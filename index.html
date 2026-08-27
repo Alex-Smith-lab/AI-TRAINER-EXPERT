@@ -16,7 +16,6 @@
 
   <div id="app" class="relative min-h-screen flex flex-col">
 
-    <!-- LOGIN / AUTHENTICATION VIEW -->
     <div id="auth-view" class="flex min-h-screen">
       <div class="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-gray-900 border-r border-gray-800">
         <div class="max-w-md mx-auto w-full">
@@ -58,7 +57,6 @@
       </div>
     </div>
 
-    <!-- MAIN DASHBOARD VIEW -->
     <div id="dashboard-view" class="hidden flex-1 flex flex-col">
       <header class="bg-gray-900 border-b border-gray-800 px-6 py-4 flex justify-between items-center">
         <div class="text-lg font-bold text-indigo-400 tracking-wider">AI TRAINER EXPERT</div>
@@ -81,7 +79,6 @@
           Your account is registered on the Waitlist. Workspace access privileges must be granted by an Administrator before tasks can be claimed.
         </div>
 
-        <!-- ADMIN USER CONTROL PANEL -->
         <section id="admin-panel" class="hidden bg-gray-900 p-5 rounded-lg border border-gray-800 space-y-4">
           <div class="flex justify-between items-center border-b border-gray-800 pb-3">
             <h3 class="font-bold text-indigo-400 text-sm uppercase tracking-wider">Admin User Management</h3>
@@ -99,23 +96,19 @@
                 </tr>
               </thead>
               <tbody id="admin-user-table" class="divide-y divide-gray-800">
-                <!-- Dynamic user rows populated via JS -->
-              </tbody>
+                </tbody>
             </table>
           </div>
         </section>
 
-        <!-- ASSIGNED TASK BOARD -->
         <section class="space-y-4">
           <h3 class="font-bold text-white text-sm uppercase tracking-wider">Available Task Queue</h3>
           <div id="tasks-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <!-- Dynamic task cards -->
-          </div>
+            </div>
         </section>
       </main>
     </div>
 
-    <!-- WORKSPACE VIEW (3D LiDAR / 7-CAMERA) -->
     <div id="workspace-view" class="hidden h-screen flex flex-col bg-black">
       <header class="bg-gray-900 border-b border-gray-800 px-4 py-2.5 flex justify-between items-center z-20">
         <div class="flex items-center space-x-3">
@@ -131,26 +124,22 @@
 
       <div class="flex-1 relative flex flex-col md:flex-row overflow-hidden">
         
-        <!-- LEFT PANEL: 7-CAMERA VIEWPORT -->
         <div id="camera-panel" class="workspace-panel w-full md:w-1/3 bg-gray-950 border-r border-gray-800 p-2 flex flex-col relative overflow-y-auto">
           <div class="flex justify-between items-center mb-2 px-1">
             <span class="text-xs font-bold text-gray-400 uppercase">7-Camera Sensor Suite</span>
             <button onclick="toggleExpandPanel('camera-panel')" class="text-[10px] bg-gray-800 hover:bg-gray-700 text-gray-300 px-2 py-0.5 rounded border border-gray-700">Expand / Restore</button>
           </div>
           <div id="camera-grid" class="grid grid-cols-1 gap-2">
-            <!-- 7 Camera views injected here -->
-          </div>
+            </div>
         </div>
 
-        <!-- RIGHT PANEL: 3D LIDAR CANVAS -->
         <div id="lidar-panel" class="workspace-panel w-full md:w-2/3 bg-black flex flex-col relative">
           <div class="flex justify-between items-center p-2 bg-gray-900 border-b border-gray-800 z-10">
             <span id="lidar-header-text" class="text-xs font-bold text-gray-400 uppercase">3D LiDAR Point Cloud Viewport</span>
             <button onclick="toggleExpandPanel('lidar-panel')" class="text-[10px] bg-gray-800 hover:bg-gray-700 text-gray-300 px-2 py-0.5 rounded border border-gray-700">Expand / Restore</button>
           </div>
           <div id="lidar-canvas-container" class="flex-1 relative">
-            <!-- Three.js Canvas injected here -->
-          </div>
+            </div>
         </div>
 
       </div>
@@ -159,10 +148,10 @@
   </div>
 
   <script>
-    // Supabase Initialization
+    // Supabase Initialization (Variable renamed to supabaseClient to prevent global window namespace collisions)
     const SUPABASE_URL = 'https://jnlhbmlkmyuhvndybkb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpubGhibWxrbXlldWh2bmR5YmtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NTgzNTUsImV4cCI6MjEwMzQzNDM1NX0.ZHP3FWqO-cK2Dy0a3xZHYQXVBN4qxu9WH8jBLqOl-1U';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
     let currentProfile = null;
@@ -173,7 +162,7 @@
     let threeScene, threeCamera, threeRenderer, pointCloudMesh, cuboidMesh, headingArrow;
 
     async function initApp() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await supabaseClient.auth.getUser();
       if (user) {
         currentUser = user;
         await fetchProfile();
@@ -193,7 +182,7 @@
     }
 
     async function fetchProfile() {
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+      const { data, error } = await supabaseClient.from('profiles').select('*').eq('id', currentUser.id).single();
       if (!error && data) {
         currentProfile = data;
       }
@@ -217,7 +206,7 @@
       statusDiv.innerText = 'Verifying credentials...';
       statusDiv.classList.remove('hidden');
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
       if (error) {
         statusDiv.className = 'mt-4 p-3 rounded text-xs bg-red-900/50 border border-red-700 text-red-200';
         statusDiv.innerText = `Login Failed: ${error.message}`;
@@ -225,7 +214,7 @@
         currentUser = data.user;
         await fetchProfile();
         if (currentProfile && currentProfile.is_disabled) {
-          await supabase.auth.signOut();
+          await supabaseClient.auth.signOut();
           statusDiv.className = 'mt-4 p-3 rounded text-xs bg-red-900/50 border border-red-700 text-red-200';
           statusDiv.innerText = 'Account Access Revoked. Contact System Administrator.';
           return;
@@ -244,13 +233,13 @@
     async function handleForgotPassword() {
       const email = prompt('Enter your registered email address for password reset:');
       if (email) {
-        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
         alert(error ? `Error: ${error.message}` : 'Password reset link sent to your email.');
       }
     }
 
     document.getElementById('logout-btn').addEventListener('click', async () => {
-      await supabase.auth.signOut();
+      await supabaseClient.auth.signOut();
       window.location.href = window.location.pathname;
     });
 
@@ -282,7 +271,7 @@
     }
 
     async function loadAdminUserTable() {
-      const { data: profiles } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+      const { data: profiles } = await supabaseClient.from('profiles').select('*').order('created_at', { ascending: false });
       const tbody = document.getElementById('admin-user-table');
       tbody.innerHTML = '';
 
@@ -323,17 +312,17 @@
     }
 
     async function updateUserRole(userId, role) {
-      await supabase.from('profiles').update({ role }).eq('id', userId);
+      await supabaseClient.from('profiles').update({ role }).eq('id', userId);
       loadAdminUserTable();
     }
 
     async function updateUserAccess(userId, access_type) {
-      await supabase.from('profiles').update({ access_type }).eq('id', userId);
+      await supabaseClient.from('profiles').update({ access_type }).eq('id', userId);
       loadAdminUserTable();
     }
 
     async function toggleUserStatus(userId, is_disabled) {
-      await supabase.from('profiles').update({ is_disabled }).eq('id', userId);
+      await supabaseClient.from('profiles').update({ is_disabled }).eq('id', userId);
       loadAdminUserTable();
     }
 
@@ -348,7 +337,7 @@
       const container = document.getElementById('tasks-container');
       container.innerHTML = '';
 
-      const { data: tasks, error } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
+      const { data: tasks, error } = await supabaseClient.from('tasks').select('*').order('created_at', { ascending: false });
 
       if (error || !tasks || tasks.length === 0) {
         container.innerHTML = `
@@ -380,7 +369,7 @@
 
     // DIRECT TASK SECURITY GUARD
     async function attemptDirectTaskAccess(taskId) {
-      const { data: task, error } = await supabase.from('tasks').select('*').eq('id', taskId).single();
+      const { data: task, error } = await supabaseClient.from('tasks').select('*').eq('id', taskId).single();
       if (error || !task) {
         alert('TASK ACCESS ERROR: Requested task does not exist or has been removed.');
         showView('dashboard-view');
@@ -412,7 +401,7 @@
         return;
       }
 
-      await supabase.from('tasks').update({ status: 'claimed', assigned_to: currentUser.id, claimed_at: new Date() }).eq('id', taskId);
+      await supabaseClient.from('tasks').update({ status: 'claimed', assigned_to: currentUser.id, claimed_at: new Date() }).eq('id', taskId);
       activeTask = { id: taskId, task_type: taskType };
       launchWorkspace();
     }
@@ -434,8 +423,7 @@
             <span class="text-[10px] font-bold bg-black/80 text-gray-200 px-1.5 py-0.5 rounded border border-gray-700">${cam}</span>
           </div>
           <div id="cam-overlay-${cam.replace(/\s+/g, '')}" class="absolute inset-0 pointer-events-none flex items-center justify-center">
-            <!-- Projected 2D Bounding Boxes render here -->
-          </div>
+            </div>
           <img src="https://images.unsplash.com/photo-1508974239320-0a029497e820?q=80&w=600" class="absolute inset-0 w-full h-full object-cover opacity-60">
         `;
         cameraGrid.appendChild(card);
@@ -468,7 +456,7 @@
       threeRenderer.setSize(container.clientWidth, container.clientHeight);
       container.appendChild(threeRenderer.domElement);
 
-      // LiDAR Point Cloud Visualization (Green Points + Blue Concentric Range Rings)
+      // LiDAR Point Cloud Visualization
       const particleCount = 6000;
       const positions = new Float32Array(particleCount * 3);
       for (let i = 0; i < particleCount * 3; i += 3) {
@@ -482,7 +470,7 @@
       pointCloudMesh = new THREE.Points(pointGeo, pointMat);
       threeScene.add(pointCloudMesh);
 
-      // Concentric Distance Rings
+      // Distance Rings
       [5, 10, 15].forEach(radius => {
         const ringGeo = new THREE.RingGeometry(radius - 0.05, radius, 64);
         const ringMat = new THREE.MeshBasicMaterial({ color: 0x0066ff, side: THREE.DoubleSide });
@@ -512,7 +500,7 @@
     }
 
     async function fetchAnnotations() {
-      const { data } = await supabase.from('annotations').select('*').eq('task_id', activeTask.id);
+      const { data } = await supabaseClient.from('annotations').select('*').eq('task_id', activeTask.id);
       annotationsList = data || [];
       document.getElementById('box-counter').innerText = `Annotated: ${annotationsList.length}`;
       render2DBoxProjections();
@@ -531,7 +519,7 @@
         data: { x: 20, y: 20, width: 60, height: 40, creator: currentUser.email }
       };
 
-      await supabase.from('annotations').insert(newAnnotation);
+      await supabaseClient.from('annotations').insert(newAnnotation);
       await fetchAnnotations();
       alert(`3D Cuboid [Track ID: ${newTrackId}] projected onto 2D camera frames.`);
     });
@@ -557,7 +545,7 @@
     }
 
     document.getElementById('submit-task-btn').addEventListener('click', async () => {
-      await supabase.from('tasks').update({ status: 'submitted' }).eq('id', activeTask.id);
+      await supabaseClient.from('tasks').update({ status: 'submitted' }).eq('id', activeTask.id);
       alert('Task submitted successfully!');
       showView('dashboard-view');
       renderDashboard();
