@@ -3,417 +3,698 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>AI TRAINER EXPERT</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <style>
-    .workspace-panel { transition: all 0.3s ease; }
-    .expanded { width: 100% !important; z-index: 50; position: absolute; top: 0; left: 0; height: 100%; }
-    .hidden-panel { display: none !important; }
-  </style>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-900 text-gray-100 font-sans min-h-screen">
 
-  <div id="app">
-    <!-- AUTH VIEW -->
-    <div id="auth-view" class="flex min-h-screen">
-      <div class="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-gray-800">
-        <div class="max-w-md mx-auto w-full">
-          <h1 class="text-3xl font-bold text-indigo-400 mb-2">AI TRAINER EXPERT</h1>
-          <p class="text-gray-400 mb-8">Sign in to access your assigned data annotation workspace.</p>
-          
-          <form id="login-form" class="space-y-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-300">Email Address</label>
-              <input type="email" id="login-email" required class="mt-1 w-full p-3 rounded bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-indigo-500">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-300">Password</label>
-              <input type="password" id="login-password" required class="mt-1 w-full p-3 rounded bg-gray-700 border border-gray-600 text-white focus:outline-none focus:border-indigo-500">
-            </div>
-            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold p-3 rounded transition">Sign In</button>
-          </form>
+<body>
 
-          <div class="mt-4 flex justify-between text-sm">
-            <a href="#" id="forgot-password" class="text-indigo-400 hover:underline">Forgot Password? Click to Reset</a>
-          </div>
-          <div id="auth-error" class="mt-4 text-red-400 text-sm hidden"></div>
-        </div>
-      </div>
-      
-      <div class="hidden md:flex md:w-1/2 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1000');">
-        <div class="w-full h-full bg-black bg-opacity-50 flex items-center p-12">
-          <div>
-            <h2 class="text-4xl font-extrabold text-white mb-4">Precision Perception Data Annotation Platform</h2>
-            <p class="text-lg text-gray-200">2D Bounding Boxes, 3D LiDAR Point Clouds, and Multi-Camera Spatial Alignment.</p>
-          </div>
-        </div>
+<!-- =========================================================
+     LOGIN SCREEN
+========================================================= -->
+
+<div id="loginScreen" class="login-screen">
+
+  <div class="login-left">
+
+    <div class="brand login-brand">
+      <div class="brand-mark">AI</div>
+
+      <div>
+        <div class="brand-name">AI TRAINER EXPERT</div>
+        <div class="brand-subtitle">DATA ANNOTATION PLATFORM</div>
       </div>
     </div>
 
-    <!-- MAIN APP DASHBOARD VIEW -->
-    <div id="dashboard-view" class="hidden min-h-screen flex flex-col">
-      <!-- HEADER -->
-      <header class="bg-gray-800 border-b border-gray-700 p-4 flex justify-between items-center">
-        <div class="text-xl font-bold text-indigo-400">AI TRAINER EXPERT</div>
-        <div class="flex items-center space-x-4">
-          <span id="user-display-name" class="font-medium">Loading...</span>
-          <button id="logout-btn" class="bg-red-600 hover:bg-red-700 text-sm px-3 py-1.5 rounded">Logout</button>
-        </div>
-      </header>
+    <div class="login-container">
 
-      <!-- MAIN CONTENT AREA -->
-      <main class="flex-1 p-6 max-w-7xl mx-auto w-full">
-        <!-- GREETING -->
-        <div class="mb-8">
-          <h2 id="time-greeting" class="text-2xl font-bold text-white">Good day, User</h2>
-          <p class="text-gray-400">Manage your active assignments and workspace access privileges.</p>
-        </div>
-
-        <!-- ACCESS DENIED BANNER -->
-        <div id="waitlist-banner" class="hidden mb-6 bg-yellow-900 border border-yellow-600 text-yellow-200 p-4 rounded">
-          Your account is currently on the waitlist or pending workspace access authorization from an Administrator.
-        </div>
-
-        <!-- ADMIN MANAGEMENT PANEL (Visible to Admins only) -->
-        <section id="admin-panel" class="hidden mb-8 bg-gray-800 p-6 rounded-lg border border-gray-700">
-          <h3 class="text-lg font-semibold text-indigo-400 mb-4">Admin Dashboard: Member Access Management</h3>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm text-gray-300">
-              <thead class="bg-gray-700 text-gray-200">
-                <tr>
-                  <th class="p-3">Email</th>
-                  <th class="p-3">Role</th>
-                  <th class="p-3">Access Grant</th>
-                  <th class="p-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody id="admin-user-table">
-                <!-- Dynamic user rows populated via JS -->
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <!-- ASSIGNED WORK CARDS -->
-        <section class="mb-8">
-          <h3 class="text-xl font-semibold text-white mb-4">Assigned Tasks</h3>
-          <div id="tasks-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Dynamic task cards -->
-          </div>
-        </section>
-      </main>
-    </div>
-
-    <!-- WORKSPACE VIEW -->
-    <div id="workspace-view" class="hidden h-screen flex flex-col bg-gray-950">
-      <header class="bg-gray-900 p-3 border-b border-gray-800 flex justify-between items-center">
-        <div class="flex items-center space-x-4">
-          <button id="back-to-dashboard" class="bg-gray-700 hover:bg-gray-600 text-xs px-3 py-1.5 rounded">&larr; Dashboard</button>
-          <span id="workspace-task-title" class="font-bold text-indigo-400">Workspace</span>
-        </div>
-        <div class="flex items-center space-x-2">
-          <button id="generate-2d-box-btn" class="hidden bg-indigo-600 hover:bg-indigo-700 text-xs px-3 py-1.5 rounded">Generate Box to 2D</button>
-          <button id="submit-task-btn" class="bg-green-600 hover:bg-green-700 text-xs px-3 py-1.5 rounded">Submit Task</button>
-        </div>
-      </header>
-
-      <!-- SPLIT VIEW WORKSPACE -->
-      <div class="flex-1 relative flex flex-col md:flex-row overflow-hidden">
-        
-        <!-- LEFT PANEL: 7 CAMERAS VIEWPORT -->
-        <div id="camera-panel" class="workspace-panel w-full md:w-1/3 bg-gray-900 border-r border-gray-800 p-2 flex flex-col relative overflow-y-auto">
-          <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-semibold text-gray-400">2D Camera Feeds (7 Views)</span>
-            <div class="space-x-1">
-              <button onclick="toggleExpand('camera-panel')" class="text-xs bg-gray-800 px-2 py-1 rounded hover:bg-gray-700">Expand/Collapse</button>
-            </div>
-          </div>
-          <div id="camera-grid" class="grid grid-cols-1 gap-2">
-            <!-- 7 Camera placeholders -->
-          </div>
-        </div>
-
-        <!-- RIGHT/CENTER PANEL: 3D LIDAR / 2D CORE WORKSPACE -->
-        <div id="lidar-panel" class="workspace-panel w-full md:w-2/3 bg-black flex flex-col relative">
-          <div class="flex justify-between items-center p-2 bg-gray-900 border-b border-gray-800 z-10">
-            <span id="lidar-header-text" class="text-xs font-semibold text-gray-400">3D LiDAR Point Cloud Canvas</span>
-            <button onclick="toggleExpand('lidar-panel')" class="text-xs bg-gray-800 px-2 py-1 rounded hover:bg-gray-700">Expand/Collapse</button>
-          </div>
-          <div id="lidar-canvas-container" class="flex-1 relative">
-            <!-- ThreeJS 3D Point Cloud Canvas -->
-          </div>
-        </div>
-
+      <div class="login-heading">
+        <span class="eyebrow">SECURE WORKSPACE</span>
+        <h1>Welcome back</h1>
+        <p>
+          Sign in to access your assigned annotation work,
+          training tasks and production workspace.
+        </p>
       </div>
+
+      <form id="loginForm">
+
+        <label>Email address</label>
+
+        <div class="input-wrap">
+          <span>✉</span>
+          <input
+            id="loginEmail"
+            type="email"
+            placeholder="Enter your email"
+            autocomplete="email"
+            required
+          >
+        </div>
+
+        <label>Password</label>
+
+        <div class="input-wrap">
+          <span>●</span>
+
+          <input
+            id="loginPassword"
+            type="password"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            required
+          >
+
+          <button
+            type="button"
+            class="password-toggle"
+            id="togglePassword"
+          >
+            Show
+          </button>
+        </div>
+
+        <div class="login-options">
+
+          <label class="remember-label">
+            <input id="rememberMe" type="checkbox" checked>
+            <span>Remember me</span>
+          </label>
+
+          <button
+            type="button"
+            class="link-button"
+            id="forgotPassword"
+          >
+            Forgot password?
+          </button>
+
+        </div>
+
+        <button
+          type="submit"
+          class="primary-button login-button"
+          id="loginButton"
+        >
+          <span id="loginButtonText">Sign in</span>
+          <span id="loginSpinner" class="button-spinner hidden"></span>
+        </button>
+
+        <div id="loginMessage" class="login-message hidden"></div>
+
+      </form>
+
+      <div class="security-note">
+        <span class="shield-icon">✓</span>
+        <span>Your access is controlled by your assigned role and task permissions.</span>
+      </div>
+
     </div>
+
+    <div class="login-footer">
+      AI TRAINER EXPERT • Annotation Operations
+    </div>
+
   </div>
 
-  <script>
-    // Supabase Credentials
-    const SUPABASE_URL = 'https://mlmldgwzvkkprwkmfdlh.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sbWxkZ3d6dmtwcHJ3a21mZGxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4MzI0MjksImV4cCI6MjEwMzQwODQyOX0.J3YbaUFeyshIvVDdPN_ePB5ES_T61W5OSzTqYtiUA8E';
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentUser = null;
-    let currentProfile = null;
-    let activeTask = null;
-    let threeScene, threeCamera, threeRenderer, cubeMesh;
+  <div class="login-right">
 
-    // Core Router Engine
-    async function initApp() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        currentUser = user;
-        await fetchProfile();
-        showView('dashboard-view');
-        renderDashboard();
-      } else {
-        showView('auth-view');
-      }
-    }
+    <div class="image-overlay"></div>
 
-    async function fetchProfile() {
-      const { data } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
-      currentProfile = data;
-    }
+    <div class="hero-content">
 
-    function showView(viewId) {
-      ['auth-view', 'dashboard-view', 'workspace-view'].forEach(id => {
-        document.getElementById(id).classList.add('hidden');
-      });
-      document.getElementById(viewId).classList.remove('hidden');
-    }
+      <div class="hero-badge">
+        <span class="pulse-dot"></span>
+        MULTI-SENSOR ANNOTATION
+      </div>
 
-    // Auth Engine
-    document.getElementById('login-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('login-email').value;
-      const password = document.getElementById('login-password').value;
-      
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        document.getElementById('auth-error').innerText = error.message;
-        document.getElementById('auth-error').classList.remove('hidden');
-      } else {
-        initApp();
-      }
-    });
+      <h2>
+        Train the future<br>
+        of <span>AI perception.</span>
+      </h2>
 
-    document.getElementById('logout-btn').addEventListener('click', async () => {
-      await supabase.auth.signOut();
-      window.location.reload();
-    });
+      <p>
+        Professional 2D camera and 3D LiDAR annotation
+        in one synchronized workspace.
+      </p>
 
-    // Dashboard Engine
-    async function renderDashboard() {
-      // Dynamic Greeting based on time
-      const hour = new Date().getHours();
-      let greeting = 'Good Evening';
-      if (hour < 12) greeting = 'Good Morning';
-      else if (hour < 18) greeting = 'Good Afternoon';
-      
-      document.getElementById('time-greeting').innerText = `${greeting}, ${currentProfile.full_name || 'Annotator'}`;
-      document.getElementById('user-display-name').innerText = `${currentProfile.full_name} (${currentProfile.role.toUpperCase()})`;
+      <div class="sensor-preview">
 
-      if (currentProfile.role === 'waitlist' || currentProfile.access_type === 'none') {
-        document.getElementById('waitlist-banner').classList.remove('hidden');
-      } else {
-        document.getElementById('waitlist-banner').classList.add('hidden');
-      }
+        <div class="sensor-card">
+          <strong>7</strong>
+          <small>CAMERAS</small>
+        </div>
 
-      if (currentProfile.role === 'admin') {
-        document.getElementById('admin-panel').classList.remove('hidden');
-        loadAdminUserTable();
-      }
+        <div class="sensor-card">
+          <strong>3D</strong>
+          <small>LIDAR</small>
+        </div>
 
-      loadTaskCards();
-    }
+        <div class="sensor-card">
+          <strong>2D</strong>
+          <small>VISION</small>
+        </div>
 
-    async function loadAdminUserTable() {
-      const { data: profiles } = await supabase.from('profiles').select('*');
-      const tbody = document.getElementById('admin-user-table');
-      tbody.innerHTML = '';
+      </div>
 
-      profiles.forEach(p => {
-        const tr = document.createElement('tr');
-        tr.className = 'border-b border-gray-700 hover:bg-gray-750';
-        tr.innerHTML = `
-          <td class="p-3">${p.email}</td>
-          <td class="p-3">
-            <select onchange="updateUserRole('${p.id}', this.value)" class="bg-gray-700 text-xs p-1.5 rounded">
-              <option value="waitlist" ${p.role === 'waitlist' ? 'selected' : ''}>Waitlist</option>
-              <option value="coworker" ${p.role === 'coworker' ? 'selected' : ''}>1st Coworker</option>
-              <option value="reviewer" ${p.role === 'reviewer' ? 'selected' : ''}>Reviewer</option>
-              <option value="admin" ${p.role === 'admin' ? 'selected' : ''}>Admin</option>
-            </select>
-          </td>
-          <td class="p-3">
-            <select onchange="updateUserAccess('${p.id}', this.value)" class="bg-gray-700 text-xs p-1.5 rounded">
-              <option value="none" ${p.access_type === 'none' ? 'selected' : ''}>No Access</option>
-              <option value="2d" ${p.access_type === '2d' ? 'selected' : ''}>2D Only</option>
-              <option value="3d" ${p.access_type === '3d' ? 'selected' : ''}>3D Only</option>
-              <option value="both" ${p.access_type === 'both' ? 'selected' : ''}>3D & 2D Access</option>
-            </select>
-          </td>
-          <td class="p-3">
-            <button onclick="updateUserAccess('${p.id}', 'none')" class="bg-red-600 hover:bg-red-700 text-xs px-2 py-1 rounded">Revoke Access</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
+    </div>
 
-    async function updateUserRole(userId, role) {
-      await supabase.from('profiles').update({ role }).eq('id', userId);
-      loadAdminUserTable();
-    }
+    <div class="hero-credit">
+      AI TRAINER EXPERT
+    </div>
 
-    async function updateUserAccess(userId, access_type) {
-      await supabase.from('profiles').update({ access_type }).eq('id', userId);
-      loadAdminUserTable();
-    }
+  </div>
 
-    async function loadTaskCards() {
-      const container = document.getElementById('tasks-container');
-      container.innerHTML = '';
+</div>
 
-      const { data: tasks } = await supabase.from('tasks').select('*');
 
-      if (!tasks || tasks.length === 0) {
-        container.innerHTML = `
-          <div class="col-span-full text-center p-8 bg-gray-800 rounded-lg border border-gray-700">
-            <p class="text-gray-300 font-medium">Working hard to give you more work!</p>
-            <p class="text-gray-500 text-sm mt-1">Check back shortly for new scene allocations.</p>
-          </div>`;
-        return;
-      }
+<!-- =========================================================
+     APPLICATION
+========================================================= -->
 
-      tasks.forEach(task => {
-        const card = document.createElement('div');
-        card.className = 'bg-green-900 border border-green-600 rounded-lg p-5 flex flex-col justify-between';
-        card.innerHTML = `
+<div id="appScreen" class="app-screen hidden">
+
+  <aside class="sidebar">
+
+    <div class="sidebar-brand">
+
+      <div class="brand-mark">AI</div>
+
+      <div>
+        <div class="sidebar-title">AI TRAINER</div>
+        <div class="sidebar-title-small">EXPERT</div>
+      </div>
+
+    </div>
+
+    <nav class="side-navigation">
+
+      <button class="nav-item active" data-page="home">
+        <span>⌂</span>
+        <span>Home</span>
+      </button>
+
+      <button class="nav-item" data-page="tasks">
+        <span>▣</span>
+        <span>My Tasks</span>
+      </button>
+
+      <button class="nav-item" data-page="activity">
+        <span>◷</span>
+        <span>Activity</span>
+      </button>
+
+      <button
+        class="nav-item admin-only"
+        data-page="admin"
+        id="adminNav"
+      >
+        <span>⚙</span>
+        <span>Admin</span>
+      </button>
+
+    </nav>
+
+    <div class="sidebar-bottom">
+
+      <div class="online-indicator">
+        <span></span>
+        System online
+      </div>
+
+      <button id="logoutButton" class="logout-button">
+        ⇥ Sign out
+      </button>
+
+    </div>
+
+  </aside>
+
+
+  <main class="main-content">
+
+    <header class="topbar">
+
+      <div>
+        <div class="company-name">AI TRAINER EXPERT</div>
+        <div class="page-location" id="pageLocation">
+          Annotation Operations
+        </div>
+      </div>
+
+      <div class="top-user">
+
+        <div class="user-avatar" id="topAvatar">
+          A
+        </div>
+
+        <div class="top-user-info">
+          <strong id="topUserName">User</strong>
+          <span id="topUserRole">Worker</span>
+        </div>
+
+        <button id="profileMenuButton" class="profile-menu-button">
+          ⋮
+        </button>
+
+      </div>
+
+    </header>
+
+
+    <section id="homePage" class="page active-page">
+
+      <div class="welcome-section">
+
+        <div>
+
+          <span class="eyebrow">YOUR WORKSPACE</span>
+
+          <h1 id="greeting">
+            Good evening
+          </h1>
+
+          <p id="welcomeName">
+            Welcome back.
+          </p>
+
+        </div>
+
+        <div class="date-display" id="currentDate"></div>
+
+      </div>
+
+
+      <div class="stats-row">
+
+        <div class="stat-card">
+
+          <div class="stat-icon purple">▣</div>
+
           <div>
-            <div class="flex justify-between items-start mb-2">
-              <h4 class="font-bold text-white text-lg">${task.task_name}</h4>
-              <span class="text-xs font-semibold px-2 py-1 rounded bg-green-700 text-green-100">${task.task_type.toUpperCase()}</span>
-            </div>
-            <p class="text-xs text-green-200 mb-4">Status: ${task.status.toUpperCase()}</p>
+            <span>Assigned</span>
+            <strong id="assignedCount">0</strong>
           </div>
-          <button onclick="claimAndStartTask('${task.id}', '${task.task_type}')" class="w-full bg-green-500 hover:bg-green-600 text-gray-950 font-bold p-2.5 rounded text-sm transition">Claim & Start Tasking</button>
-        `;
-        container.appendChild(card);
-      });
-    }
 
-    async function claimAndStartTask(taskId, taskType) {
-      // Access Guard Check
-      if (currentProfile.access_type !== 'both' && currentProfile.access_type !== taskType) {
-        alert('ACCESS DENIED: You do not have permissions to open this task type.');
-        return;
-      }
+        </div>
 
-      await supabase.from('tasks').update({ status: 'claimed', assigned_to: currentUser.id, claimed_at: new Date() }).eq('id', taskId);
-      activeTask = { id: taskId, type: taskType };
-      launchWorkspace(taskType);
-    }
 
-    // Workspace Canvas & Camera Assembly
-    function launchWorkspace(taskType) {
-      showView('workspace-view');
-      document.getElementById('workspace-task-title').innerText = `Workspace: Task ${activeTask.id.slice(0, 8)} (${taskType.toUpperCase()})`;
+        <div class="stat-card">
 
-      const cameraGrid = document.getElementById('camera-grid');
-      cameraGrid.innerHTML = '';
+          <div class="stat-icon green">✓</div>
 
-      const cameras = ['Front Wide', 'Front Narrow', 'Front Left', 'Front Right', 'Rear Left', 'Rear Right', 'Rear'];
-      cameras.forEach(cam => {
-        const div = document.createElement('div');
-        div.className = 'relative bg-gray-800 border border-gray-700 rounded overflow-hidden h-28';
-        div.innerHTML = `
-          <span class="absolute top-1 left-1 bg-black bg-opacity-70 text-gray-200 text-xs px-1.5 py-0.5 rounded">${cam}</span>
-          <img src="https://images.unsplash.com/photo-1508974239320-0a029497e820?q=80&w=400" class="w-full h-full object-cover">
-          <div id="box-overlay-${cam.replace(/\s+/g, '')}" class="absolute inset-0 pointer-events-none"></div>
-        `;
-        cameraGrid.appendChild(div);
-      });
+          <div>
+            <span>Completed</span>
+            <strong id="completedCount">0</strong>
+          </div>
 
-      if (taskType === '3d') {
-        document.getElementById('generate-2d-box-btn').classList.remove('hidden');
-      } else {
-        document.getElementById('generate-2d-box-btn').classList.add('hidden');
-      }
+        </div>
 
-      initThreeJS();
-    }
 
-    function initThreeJS() {
-      const container = document.getElementById('lidar-canvas-container');
-      container.innerHTML = '';
+        <div class="stat-card">
 
-      threeScene = new THREE.Scene();
-      threeCamera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-      threeRenderer = new THREE.WebGLRenderer({ antialias: true });
-      threeRenderer.setSize(container.clientWidth, container.clientHeight);
-      container.appendChild(threeRenderer.domElement);
+          <div class="stat-icon blue">◈</div>
 
-      // Point cloud mock particle grid
-      const geometry = new THREE.BufferGeometry();
-      const count = 5000;
-      const positions = new Float32Array(count * 3);
-      for (let i = 0; i < count * 3; i++) {
-        positions[i] = (Math.random() - 0.5) * 20;
-      }
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      const material = new THREE.PointsMaterial({ size: 0.05, color: 0x00ff88 });
-      const points = new THREE.Points(geometry, material);
-      threeScene.add(points);
+          <div>
+            <span>Annotation boxes</span>
+            <strong id="boxCount">0</strong>
+          </div>
 
-      // 3D Cuboid Mock
-      const cubeGeo = new THREE.BoxGeometry(2, 1, 4);
-      const cubeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true });
-      cubeMesh = new THREE.Mesh(cubeGeo, cubeMat);
-      threeScene.add(cubeMesh);
+        </div>
 
-      threeCamera.position.set(0, 5, 8);
-      threeCamera.lookAt(0, 0, 0);
 
-      function animate() {
-        requestAnimationFrame(animate);
-        cubeMesh.rotation.y += 0.005;
-        threeRenderer.render(threeScene, threeCamera);
-      }
-      animate();
-    }
+        <div class="stat-card">
 
-    document.getElementById('generate-2d-box-btn').addEventListener('click', async () => {
-      await supabase.from('annotations').insert({
-        task_id: activeTask.id,
-        user_id: currentUser.id,
-        annotation_type: 'generated_2d_box',
-        data: { x: 10, y: 10, width: 80, height: 50, creator: currentProfile.email }
-      });
-      alert('3D Cuboid projected and saved as 2D Bounding Boxes across frames!');
-    });
+          <div class="stat-icon orange">◷</div>
 
-    document.getElementById('submit-task-btn').addEventListener('click', async () => {
-      await supabase.from('tasks').update({ status: 'submitted' }).eq('id', activeTask.id);
-      alert('Task submitted successfully!');
-      showView('dashboard-view');
-      renderDashboard();
-    });
+          <div>
+            <span>Active role</span>
+            <strong id="roleStat">Worker</strong>
+          </div>
 
-    document.getElementById('back-to-dashboard').addEventListener('click', () => {
-      showView('dashboard-view');
-      renderDashboard();
-    });
+        </div>
 
-    function toggleExpand(panelId) {
-      document.getElementById(panelId).classList.toggle('expanded');
-    }
+      </div>
 
-    window.onload = initApp;
-  </script>
+
+      <div class="section-heading">
+
+        <div>
+          <span class="eyebrow">WORK QUEUE</span>
+          <h2>Assigned work</h2>
+        </div>
+
+        <button
+          class="secondary-button"
+          id="refreshTasks"
+        >
+          ↻ Refresh
+        </button>
+
+      </div>
+
+
+      <div id="taskList" class="task-grid"></div>
+
+
+      <div id="emptyTasks" class="empty-state hidden">
+
+        <div class="empty-icon">◌</div>
+
+        <h3>Working hard to give you more work</h3>
+
+        <p>
+          There are currently no unclaimed tasks assigned to your account.
+          Check again later.
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MY TASKS
+    ====================================================== -->
+
+    <section id="tasksPage" class="page">
+
+      <div class="page-header">
+
+        <div>
+          <span class="eyebrow">TASK MANAGEMENT</span>
+          <h1>My Tasks</h1>
+          <p>Tasks currently assigned to your account.</p>
+        </div>
+
+      </div>
+
+      <div id="myTasksList" class="full-task-list"></div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ACTIVITY
+    ====================================================== -->
+
+    <section id="activityPage" class="page">
+
+      <div class="page-header">
+
+        <div>
+          <span class="eyebrow">AUDIT TRAIL</span>
+          <h1>Activity</h1>
+          <p>Your recent annotation activity.</p>
+        </div>
+
+      </div>
+
+      <div id="activityList" class="activity-list"></div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ADMIN
+    ====================================================== -->
+
+    <section id="adminPage" class="page">
+
+      <div class="page-header">
+
+        <div>
+          <span class="eyebrow">CONTROL CENTER</span>
+          <h1>Administration</h1>
+          <p>
+            Manage workers, permissions, tasks and access.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="admin-tabs">
+
+        <button class="admin-tab active" data-admin-tab="overview">
+          Overview
+        </button>
+
+        <button class="admin-tab" data-admin-tab="users">
+          Users
+        </button>
+
+        <button class="admin-tab" data-admin-tab="tasks">
+          Tasks
+        </button>
+
+        <button class="admin-tab" data-admin-tab="requests">
+          Access requests
+        </button>
+
+      </div>
+
+
+      <!-- ADMIN OVERVIEW -->
+
+      <div
+        class="admin-panel active"
+        id="adminOverview"
+      >
+
+        <div class="admin-stats">
+
+          <div class="admin-stat">
+            <span>Total users</span>
+            <strong id="adminTotalUsers">0</strong>
+          </div>
+
+          <div class="admin-stat">
+            <span>Workers</span>
+            <strong id="adminWorkers">0</strong>
+          </div>
+
+          <div class="admin-stat">
+            <span>Reviewers</span>
+            <strong id="adminReviewers">0</strong>
+          </div>
+
+          <div class="admin-stat">
+            <span>Waiting</span>
+            <strong id="adminWaitlist">0</strong>
+          </div>
+
+        </div>
+
+        <div class="admin-card">
+
+          <div class="card-title-row">
+
+            <div>
+              <h3>Create annotation task</h3>
+              <p>
+                Assign 2D, 3D or both task types to a worker.
+              </p>
+            </div>
+
+          </div>
+
+
+          <form id="createTaskForm">
+
+            <div class="form-grid">
+
+              <div class="form-field">
+                <label>Task name</label>
+                <input
+                  id="taskName"
+                  required
+                  placeholder="e.g. Nairobi Route 08"
+                >
+              </div>
+
+              <div class="form-field">
+                <label>Task type</label>
+
+                <select id="taskType">
+                  <option value="3d">3D LiDAR</option>
+                  <option value="2d">2D Camera</option>
+                  <option value="both">2D + 3D</option>
+                </select>
+
+              </div>
+
+              <div class="form-field">
+                <label>Assign to</label>
+
+                <select id="taskAssignee">
+                  <option value="">Select worker</option>
+                </select>
+
+              </div>
+
+              <div class="form-field">
+                <label>Google Sheet / task link</label>
+
+                <input
+                  id="taskLink"
+                  type="url"
+                  placeholder="https://docs.google.com/..."
+                >
+
+              </div>
+
+              <div class="form-field full">
+
+                <label>Description</label>
+
+                <textarea
+                  id="taskDescription"
+                  rows="3"
+                  placeholder="Task instructions..."
+                ></textarea>
+
+              </div>
+
+            </div>
+
+            <button class="primary-button" type="submit">
+              + Create task
+            </button>
+
+          </form>
+
+        </div>
+
+      </div>
+
+
+      <!-- USERS -->
+
+      <div class="admin-panel" id="adminUsers">
+
+        <div class="admin-card">
+
+          <div class="card-title-row">
+
+            <div>
+              <h3>Team members</h3>
+              <p>
+                Control roles and 2D / 3D access.
+              </p>
+            </div>
+
+            <button
+              id="refreshUsers"
+              class="secondary-button"
+            >
+              ↻ Refresh
+            </button>
+
+          </div>
+
+          <div id="usersTable" class="users-table"></div>
+
+        </div>
+
+      </div>
+
+
+      <!-- TASKS -->
+
+      <div class="admin-panel" id="adminTasks">
+
+        <div class="admin-card">
+
+          <div class="card-title-row">
+
+            <div>
+              <h3>All tasks</h3>
+              <p>
+                Monitor task assignment and claims.
+              </p>
+            </div>
+
+          </div>
+
+          <div id="adminTasksTable" class="users-table"></div>
+
+        </div>
+
+      </div>
+
+
+      <!-- REQUESTS -->
+
+      <div class="admin-panel" id="adminRequests">
+
+        <div class="admin-card">
+
+          <div class="card-title-row">
+
+            <div>
+              <h3>Access requests</h3>
+              <p>
+                Approve or reject coworker access requests.
+              </p>
+            </div>
+
+          </div>
+
+          <div id="requestsTable" class="users-table"></div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+
+<!-- =========================================================
+     MODAL
+========================================================= -->
+
+<div id="modalOverlay" class="modal-overlay hidden">
+
+  <div class="modal">
+
+    <button
+      id="closeModal"
+      class="modal-close"
+    >
+      ×
+    </button>
+
+    <div id="modalContent"></div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================================================
+     TOAST
+========================================================= -->
+
+<div id="toast" class="toast hidden">
+  <span id="toastIcon">✓</span>
+  <span id="toastText"></span>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+
 </body>
 </html>
