@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Annotation Workspace | AI TRAINER EXPERT</title>
+
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  >
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  >
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <link
+    rel="stylesheet"
+    href="workspace.css"
+  >
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     TOP BAR
+========================================================= -->
+
+<header class="workspace-topbar">
+
+  <div class="workspace-brand">
+
+    <button
+      id="backButton"
+      class="back-button"
+    >
+      ←
+    </button>
+
+    <div class="brand-square">
+      AI
+    </div>
+
+    <div>
+
+      <strong>
+        AI TRAINER EXPERT
+      </strong>
+
+      <span>
+        ANNOTATION WORKSPACE
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <div class="workspace-task-info">
+
+    <strong id="workspaceTaskName">
+      Loading task...
+    </strong>
+
+    <span id="workspaceTaskType">
+      Loading...
+    </span>
+
+  </div>
+
+
+  <div class="workspace-user">
+
+    <div
+      id="workspaceUserAvatar"
+      class="workspace-avatar"
+    >
+      A
+    </div>
+
+    <span id="workspaceUserName">
+      User
+    </span>
+
+  </div>
+
+</header>
+
+
+<!-- =========================================================
+     WORKSPACE
+========================================================= -->
+
+<main class="workspace">
+
+
+  <!-- =======================================================
+       LEFT SENSOR PANEL
+  ======================================================== -->
+
+  <aside class="camera-sidebar">
+
+    <div class="panel-header">
+
+      <div>
+
+        <span class="panel-eyebrow">
+          MULTI-CAMERA
+        </span>
+
+        <h2>
+          7 Cameras
+        </h2>
+
+      </div>
+
+      <span
+        id="cameraCount"
+        class="count-badge"
+      >
+        7
+      </span>
+
+    </div>
+
+
+    <div class="camera-list">
+
+
+      <button
+        class="camera-item active"
+        data-camera="front_wide"
+      >
+
+        <span class="camera-number">
+          01
+        </span>
+
+        <span>
+
+          <strong>
+            Front Wide
+          </strong>
+
+          <small>
+            FRONT-WIDE
+          </small>
+
+        </span>
+
+        <span class="camera-status">
+          ●
+        </span>
+
+      </button>
+
+
+      <button
+        class="camera-item"
+        data-camera="front_narrow"
+      >
+
+        <span class="camera-number">
+          02
+        </span>
+
+        <span>
+
+          <strong>
+            Front Narrow
+          </strong>
+
+          <small>
+            FRONT-NARROW
+          </small>
+
+        </span>
+
+        <span class="camera-status">
+          ●
+        </span>
+
+      </button>
+
+
+      <button
+        class="camera-item"
+        data-camera="front_left"
+      >
+
+        <span class="camera-number">
+          03
+        </span>
+
+        <span>
+
+          <strong>
+            Front Left
+          </strong>
+
+          <small>
+            FRONT-LEFT
+          </small>
+
+        </span>
+
+        <span class="camera-status">
+          ●
+        </span>
+
+      </button>
+
+
+      <button
+        class="camera-item"
+        data-camera="front_right"
+      >
+
+        <span class="camera-number">
+          04
+        </span>
+
+        <span>
+
+          <strong>
+            Front Right
+          </strong>
+
+          <small>
+            FRONT-RIGHT
+          </small>
+
+        </span>
+
+        <span class="camera-status">
+          ●
+        </span>
+
+      </button>
+
+
+      <button
+        class="camera-item"
+        data-camera="rear_left"
+      >
+
+        <span class="camera-number">
+          05
+        </span>
+
+        <span>
+
+          <strong>
+            Rear Left
+          </strong>
+
+          <small>
+            REAR-LEFT
+          </small>
+
+        </span>
+
+        <span class="camera-status">
+          ●
+        </span>
+
+      </button>
+
+
+      <button
+        class="camera-item"
+        data-camera="rear_right"
+      >
+
+        <span class="camera-number">
+          06
+        </span>
+
+        <span>
+
+          <strong>
+            Rear Right
+          </strong>
+
+          <small>
+            REAR-RIGHT
+          </small>
+
+        </span>
+
+        <span class="camera-status">
+          ●
+        </span>
+
+      </button>
+
+
+      <button
+        class="camera-item"
+        data-camera="rear"
+      >
+
+        <span class="camera-number">
+          07
+        </span>
+
+        <span>
+
+          <strong>
+            Rear
+          </strong>
+
+          <small>
+            REAR
+          </small>
+
+        </span>
+
+        <span class="camera-status">
+          ●
+        </span>
+
+      </button>
+
+
+    </div>
+
+
+    <div class="camera-tools">
+
+      <button id="cameraGridButton">
+        ▦ Camera Grid
+      </button>
+
+      <button id="syncButton">
+        ◉ Sync Sensors
+      </button>
+
+    </div>
+
+  </aside>
+
+
+  <!-- =======================================================
+       CENTER
+  ======================================================== -->
+
+  <section class="annotation-center">
+
+
+    <!-- TOOLBAR -->
+
+    <div class="annotation-toolbar">
+
+      <div class="tool-group">
+
+        <button
+          class="tool-button active"
+          id="selectTool"
+        >
+          ↖ Select
+        </button>
+
+        <button
+          class="tool-button"
+          id="cuboidTool"
+        >
+          ◇ Cuboid
+        </button>
+
+        <button
+          class="tool-button"
+          id="box2dTool"
+        >
+          □ 2D Box
+        </button>
+
+        <button
+          class="tool-button"
+          id="deleteTool"
+        >
+          ⌫ Delete
+        </button>
+
+      </div>
+
+
+      <div class="tool-group">
+
+        <button
+          class="tool-button"
+          id="undoButton"
+        >
+          ↶
+        </button>
+
+        <button
+          class="tool-button"
+          id="redoButton"
+        >
+          ↷
+        </button>
+
+        <button
+          class="tool-button"
+          id="fitButton"
+        >
+          Fit
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- LIDAR -->
+
+    <div
+      id="lidarPanel"
+      class="sensor-panel lidar-panel"
+    >
+
+      <div class="sensor-panel-header">
+
+        <div>
+
+          <span class="sensor-label">
+            3D SENSOR
+          </span>
+
+          <strong>
+            LiDAR Point Cloud
+          </strong>
+
+          <span
+            id="lidarFrameInfo"
+            class="frame-info"
+          >
+            Frame 000001
+          </span>
+
+        </div>
+
+
+        <div class="sensor-panel-actions">
+
+          <button
+            id="lidarExpand"
+            title="Expand"
+          >
+            ⛶
+          </button>
+
+          <button
+            id="lidarClose"
+            title="Close"
+          >
+            ×
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="lidarCanvasWrap"
+        class="lidar-canvas-wrap"
+      >
+
+        <canvas
+          id="lidarCanvas"
+        ></canvas>
+
+
+        <div class="lidar-overlay">
+
+          <span>
+            TOP / 3D
+          </span>
+
+          <span>
+            X
+          </span>
+
+          <span>
+            Y
+          </span>
+
+          <span>
+            Z
+          </span>
+
+        </div>
+
+
+        <div
+          id="lidarSelection"
+          class="sensor-selection hidden"
+        >
+          Object selected
+        </div>
+
+      </div>
+
+
+      <div class="sensor-footer">
+
+        <div class="sensor-info">
+
+          <span>
+            Objects:
+            <strong id="objectCount">
+              0
+            </strong>
+          </span>
+
+          <span>
+            Selected:
+            <strong id="selectedCount">
+              0
+            </strong>
+          </span>
+
+          <span>
+            User:
+            <strong id="annotationUser">
+              —
+            </strong>
+          </span>
+
+        </div>
+
+
+        <button
+          id="generate2DButton"
+          class="generate-button"
+        >
+          Generate Box to 2D
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- 2D CAMERA -->
+
+    <div
+      id="cameraPanel"
+      class="sensor-panel camera-panel"
+    >
+
+      <div class="sensor-panel-header">
+
+        <div>
+
+          <span class="sensor-label">
+            2D SENSOR
+          </span>
+
+          <strong id="activeCameraName">
+            Front Wide
+          </strong>
+
+          <span
+            id="cameraFrameInfo"
+            class="frame-info"
+          >
+            Frame 000001
+          </span>
+
+        </div>
+
+
+        <div class="sensor-panel-actions">
+
+          <button
+            id="cameraExpand"
+            title="Expand"
+          >
+            ⛶
+          </button>
+
+          <button
+            id="cameraClose"
+            title="Close"
+          >
+            ×
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div
+        id="cameraCanvasWrap"
+        class="camera-canvas-wrap"
+      >
+
+        <canvas
+          id="cameraCanvas"
+        ></canvas>
+
+
+        <div class="camera-overlay">
+
+          <span>
+            2D VIEW
+          </span>
+
+          <span id="projectionStatus">
+            LIVE PROJECTION
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <div class="sensor-footer">
+
+        <div class="sensor-info">
+
+          <span>
+            Camera:
+            <strong id="cameraFooterName">
+              Front Wide
+            </strong>
+          </span>
+
+          <span>
+            Track ID:
+            <strong id="trackId">
+              —
+            </strong>
+          </span>
+
+          <span>
+            Boxes:
+            <strong id="cameraBoxCount">
+              0
+            </strong>
+          </span>
+
+        </div>
+
+
+        <button
+          id="submitCameraButton"
+          class="submit-button"
+        >
+          Submit 2D
+        </button>
+
+      </div>
+
+    </div>
+
+
+    <!-- TIMELINE -->
+
+    <div class="timeline">
+
+      <button
+        id="previousFrame"
+        class="timeline-button"
+      >
+        ‹
+      </button>
+
+      <button
+        id="playButton"
+        class="play-button"
+      >
+        ▶
+      </button>
+
+      <div class="timeline-track">
+
+        <div
+          id="timelineProgress"
+          class="timeline-progress"
+        ></div>
+
+        <div
+          id="timelineHandle"
+          class="timeline-handle"
+        ></div>
+
+      </div>
+
+      <button
+        id="nextFrame"
+        class="timeline-button"
+      >
+        ›
+      </button>
+
+      <span
+        id="timelineFrame"
+        class="timeline-frame"
+      >
+        1 / 100
+      </span>
+
+    </div>
+
+
+  </section>
+
+
+  <!-- =======================================================
+       RIGHT PANEL
+  ======================================================== -->
+
+  <aside class="properties-panel">
+
+    <div class="properties-header">
+
+      <div>
+
+        <span class="panel-eyebrow">
+          ANNOTATION
+        </span>
+
+        <h2>
+          Object Properties
+        </h2>
+
+      </div>
+
+    </div>
+
+
+    <div
+      id="noSelection"
+      class="no-selection"
+    >
+
+      <div>
+        ◇
+      </div>
+
+      <h3>
+        Select an object
+      </h3>
+
+      <p>
+        Select a cuboid or 2D box
+        to edit its properties.
+      </p>
+
+    </div>
+
+
+    <div
+      id="objectProperties"
+      class="object-properties hidden"
+    >
+
+      <div class="property-section">
+
+        <label>
+          Track ID
+        </label>
+
+        <input
+          id="propertyTrackId"
+          readonly
+        >
+
+      </div>
+
+
+      <div class="property-section">
+
+        <label>
+          Class
+        </label>
+
+        <select id="propertyClass">
+
+          <option>
+            Vehicle
+          </option>
+
+          <option>
+            Pedestrian
+          </option>
+
+          <option>
+            Cyclist
+          </option>
+
+          <option>
+            Motorcycle
+          </option>
+
+          <option>
+            Bus
+          </option>
+
+          <option>
+            Truck
+          </option>
+
+          <option>
+            Unknown
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="property-section">
+
+        <label>
+          Occlusion
+        </label>
+
+        <select id="propertyOcclusion">
+
+          <option value="0">
+            0–25% Low
+          </option>
+
+          <option value="1">
+            26–50% Medium
+          </option>
+
+          <option value="2">
+            51–99% High
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <div class="property-section">
+
+        <label>
+          Truncated
+        </label>
+
+        <label class="switch-row">
+
+          <input
+            type="checkbox"
+            id="propertyTruncated"
+          >
+
+          <span>
+            Object cut by camera boundary
+          </span>
+
+        </label>
+
+      </div>
+
+
+      <div class="property-section">
+
+        <label>
+          Dimensions
+        </label>
+
+        <div class="dimension-grid">
+
+          <input
+            id="propertyLength"
+            type="number"
+            step=".01"
+            placeholder="L"
+          >
+
+          <input
+            id="propertyWidth"
+            type="number"
+            step=".01"
+            placeholder="W"
+          >
+
+          <input
+            id="propertyHeight"
+            type="number"
+            step=".01"
+            placeholder="H"
+          >
+
+        </div>
+
+      </div>
+
+
+      <div class="property-section">
+
+        <label>
+          Annotation owner
+        </label>
+
+        <div
+          id="propertyOwner"
+          class="owner-box"
+        >
+          —
+        </div>
+
+      </div>
+
+
+      <button
+        id="saveObjectButton"
+        class="save-object-button"
+      >
+        Save object
+      </button>
+
+    </div>
+
+
+    <div class="quality-card">
+
+      <div class="quality-header">
+
+        <strong>
+          Quality checklist
+        </strong>
+
+        <span>
+          LIVE
+        </span>
+
+      </div>
+
+      <div class="quality-item">
+        <span>Ground contact</span>
+        <b id="qualityGround">✓</b>
+      </div>
+
+      <div class="quality-item">
+        <span>Heading alignment</span>
+        <b id="qualityHeading">✓</b>
+      </div>
+
+      <div class="quality-item">
+        <span>Tight dimensions</span>
+        <b id="qualityDimensions">✓</b>
+      </div>
+
+      <div class="quality-item">
+        <span>Track consistency</span>
+        <b id="qualityTrack">✓</b>
+      </div>
+
+    </div>
+
+
+    <div class="workspace-actions">
+
+      <button
+        id="submitTaskButton"
+        class="submit-task-button"
+      >
+        Submit Task
+      </button>
+
+      <button
+        id="saveDraftButton"
+        class="save-draft-button"
+      >
+        Save Draft
+      </button>
+
+    </div>
+
+  </aside>
+
+</main>
+
+
+<!-- =========================================================
+     ACCESS DENIED
+========================================================= -->
+
+<div
+  id="accessDenied"
+  class="access-denied hidden"
+>
+
+  <div class="denied-card">
+
+    <div class="denied-icon">
+      !
+    </div>
+
+    <h1>
+      Access denied
+    </h1>
+
+    <p id="deniedMessage">
+      You do not have permission to access this workspace.
+    </p>
+
+    <button
+      id="deniedBack"
+      class="submit-task-button"
+    >
+      Return to dashboard
+    </button>
+
+  </div>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="workspace.js"></script>
+
+</body>
+</html>
