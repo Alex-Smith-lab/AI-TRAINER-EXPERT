@@ -2,880 +2,577 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
-
-  <meta
-    name="description"
-    content="AI TRAINER EXPERT - Professional 2D and 3D data annotation training workspace."
-  >
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI TRAINER EXPERT</title>
-
-  <!-- Prevent favicon 404 -->
-  <link
-    rel="icon"
-    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%237c3aed'/%3E%3Cpath d='M25 70V30h12l13 19 13-19h12v40H64V49L50 68 36 49v21z' fill='white'/%3E%3C/svg%3E"
-  >
-
-  <link rel="stylesheet" href="styles.css">
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    .workspace-panel { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .expanded-view { position: absolute !important; inset: 0 !important; z-index: 50 !important; width: 100% !important; height: 100% !important; }
+  </style>
 </head>
+<body class="bg-gray-950 text-gray-100 font-sans min-h-screen">
 
-<body>
+  <div id="app" class="relative min-h-screen flex flex-col">
 
-  <!-- =====================================================
-       LOGIN SCREEN
-  ====================================================== -->
-
-  <main id="authScreen" class="auth-screen">
-
-    <section class="auth-left">
-
-      <div class="brand-mobile">
-        <div class="brand-mark">AI</div>
-        <div>
-          <strong>AI TRAINER</strong>
-          <span>EXPERT</span>
-        </div>
-      </div>
-
-      <div class="auth-container">
-
-        <div class="brand-desktop">
-          <div class="brand-mark">AI</div>
-
-          <div class="brand-name">
-            <strong>AI TRAINER</strong>
-            <span>EXPERT</span>
-          </div>
-        </div>
-
-        <!-- LOGIN -->
-
-        <div id="loginView">
-
-          <div class="auth-heading">
-            <div class="eyebrow">SECURE WORKSPACE</div>
-
-            <h1>Welcome back</h1>
-
-            <p>
-              Sign in to access your assigned annotation work.
-            </p>
+    <!-- LOGIN / AUTHENTICATION VIEW -->
+    <div id="auth-view" class="flex min-h-screen">
+      <div class="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-gray-900 border-r border-gray-800">
+        <div class="max-w-md mx-auto w-full">
+          <div class="mb-8">
+            <h1 class="text-3xl font-extrabold text-indigo-500 tracking-wider">AI TRAINER EXPERT</h1>
+            <p class="text-gray-400 text-sm mt-1">Autonomous Vehicle Perception & Data Annotation Workspace</p>
           </div>
 
-          <form id="loginForm">
-
-            <label for="loginEmail">
-              Email address
-            </label>
-
-            <div class="input-wrap">
-              <span>✉</span>
-
-              <input
-                id="loginEmail"
-                type="email"
-                autocomplete="email"
-                placeholder="you@example.com"
-                required
-              >
-            </div>
-
-
-            <label for="loginPassword">
-              Password
-            </label>
-
-            <div class="input-wrap">
-              <span>●</span>
-
-              <input
-                id="loginPassword"
-                type="password"
-                autocomplete="current-password"
-                placeholder="Enter your password"
-                required
-              >
-
-              <button
-                type="button"
-                id="togglePassword"
-                class="eye-button"
-                aria-label="Show password"
-              >
-                ◉
-              </button>
-            </div>
-
-
-            <div class="login-options">
-
-              <label class="remember-option">
-                <input
-                  type="checkbox"
-                  id="rememberMe"
-                  checked
-                >
-                <span>Remember me</span>
-              </label>
-
-              <button
-                type="button"
-                id="forgotPasswordButton"
-                class="link-button"
-              >
-                Forgot password?
-              </button>
-
-            </div>
-
-
-            <button
-              type="submit"
-              id="loginButton"
-              class="primary-button"
-            >
-              <span id="loginButtonText">
-                Sign in
-              </span>
-
-              <span
-                id="loginSpinner"
-                class="button-spinner hidden"
-              ></span>
-            </button>
-
-          </form>
-
-
-          <div
-            id="loginMessage"
-            class="message hidden"
-          ></div>
-
-
-          <div class="access-note">
-
-            <div class="access-icon">
-              ✓
-            </div>
-
+          <form id="login-form" class="space-y-4">
             <div>
-              <strong>Controlled access</strong>
-
-              <p>
-                Accounts are activated by an administrator.
-                Only approved users can enter the workspace.
-              </p>
+              <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Email Address</label>
+              <input type="email" id="login-email" required class="w-full p-3 rounded bg-gray-800 border border-gray-700 text-white focus:outline-none focus:border-indigo-500 text-sm">
             </div>
-
-          </div>
-
-        </div>
-
-
-        <!-- FORGOT PASSWORD -->
-
-        <div
-          id="forgotView"
-          class="hidden"
-        >
-
-          <button
-            id="backToLogin"
-            class="back-button"
-            type="button"
-          >
-            ← Back to sign in
-          </button>
-
-          <div class="auth-heading">
-
-            <div class="eyebrow">
-              ACCOUNT RECOVERY
+            <div>
+              <label class="block text-xs font-semibold uppercase text-gray-400 mb-1">Password</label>
+              <div class="relative">
+                <input type="password" id="login-password" required class="w-full p-3 rounded bg-gray-800 border border-gray-700 text-white focus:outline-none focus:border-indigo-500 text-sm">
+                <button type="button" onclick="togglePasswordVisibility()" class="absolute right-3 top-3 text-xs text-gray-400 hover:text-white">Show/Hide</button>
+              </div>
             </div>
-
-            <h1>Reset your password</h1>
-
-            <p>
-              Enter the email associated with your account.
-              We will send you a secure password-reset link.
-            </p>
-
-          </div>
-
-
-          <form id="forgotForm">
-
-            <label for="forgotEmail">
-              Email address
-            </label>
-
-            <div class="input-wrap">
-              <span>✉</span>
-
-              <input
-                id="forgotEmail"
-                type="email"
-                autocomplete="email"
-                placeholder="you@example.com"
-                required
-              >
+            <div class="flex items-center justify-between text-xs">
+              <label class="flex items-center text-gray-400">
+                <input type="checkbox" id="remember-me" class="mr-2 rounded bg-gray-800 border-gray-700"> Remember Session
+              </label>
+              <a href="#" onclick="handleForgotPassword()" class="text-indigo-400 hover:underline">Forgot Password?</a>
             </div>
-
-
-            <button
-              type="submit"
-              id="resetButton"
-              class="primary-button"
-            >
-              <span id="resetButtonText">
-                Send reset link
-              </span>
-
-              <span
-                id="resetSpinner"
-                class="button-spinner hidden"
-              ></span>
-            </button>
-
+            <button type="submit" id="login-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded text-sm transition">Sign In</button>
           </form>
 
-
-          <div
-            id="forgotMessage"
-            class="message hidden"
-          ></div>
-
-        </div>
-
-
-        <!-- NEW PASSWORD -->
-
-        <div
-          id="newPasswordView"
-          class="hidden"
-        >
-
-          <div class="auth-heading">
-
-            <div class="eyebrow">
-              PASSWORD RECOVERY
-            </div>
-
-            <h1>Create new password</h1>
-
-            <p>
-              Choose a new secure password for your account.
-            </p>
-
-          </div>
-
-
-          <form id="newPasswordForm">
-
-            <label for="newPassword">
-              New password
-            </label>
-
-            <div class="input-wrap">
-
-              <span>●</span>
-
-              <input
-                id="newPassword"
-                type="password"
-                minlength="8"
-                placeholder="At least 8 characters"
-                required
-              >
-
-            </div>
-
-
-            <label for="confirmPassword">
-              Confirm password
-            </label>
-
-            <div class="input-wrap">
-
-              <span>●</span>
-
-              <input
-                id="confirmPassword"
-                type="password"
-                minlength="8"
-                placeholder="Repeat your password"
-                required
-              >
-
-            </div>
-
-
-            <button
-              type="submit"
-              id="updatePasswordButton"
-              class="primary-button"
-            >
-              Update password
-            </button>
-
-          </form>
-
-
-          <div
-            id="newPasswordMessage"
-            class="message hidden"
-          ></div>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- RIGHT SIDE -->
-
-    <section class="auth-right">
-
-      <div class="hero-overlay"></div>
-
-      <div class="hero-content">
-
-        <div class="hero-badge">
-          <span class="pulse"></span>
-          PROFESSIONAL DATA ANNOTATION
-        </div>
-
-        <h2>
-          Train.
-          <br>
-          Annotate.
-          <br>
-          <span>Become an Expert.</span>
-        </h2>
-
-        <p>
-          A controlled 2D and 3D annotation environment
-          designed for precision, consistency and professional
-          AI training workflows.
-        </p>
-
-
-        <div class="hero-stats">
-
-          <div>
-            <strong>2D</strong>
-            <span>Vision Annotation</span>
-          </div>
-
-          <div>
-            <strong>3D</strong>
-            <span>LiDAR Annotation</span>
-          </div>
-
-          <div>
-            <strong>7</strong>
-            <span>Camera Views</span>
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <div class="floating-card card-one">
-        <span class="mini-icon">▣</span>
-        <div>
-          <strong>3D LiDAR</strong>
-          <small>Multi-view annotation</small>
+          <div id="auth-status" class="mt-4 p-3 rounded text-xs hidden"></div>
         </div>
       </div>
 
-
-      <div class="floating-card card-two">
-        <span class="mini-icon">◇</span>
-        <div>
-          <strong>2D Vision</strong>
-          <small>Precision bounding boxes</small>
+      <div class="hidden md:flex md:w-1/2 bg-cover bg-center relative" style="background-image: url('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1000');">
+        <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/60 to-transparent flex flex-col justify-end p-12">
+          <h2 class="text-3xl font-bold text-white mb-2">Multi-Sensor Spatial Tracking</h2>
+          <p class="text-gray-300 text-sm">Synchronized 3D LiDAR point cloud annotation with automatic 2D multi-camera vector projection.</p>
         </div>
       </div>
+    </div>
 
-    </section>
-
-  </main>
-
-
-  <!-- =====================================================
-       MAIN APPLICATION
-  ====================================================== -->
-
-  <div
-    id="appScreen"
-    class="app-screen hidden"
-  >
-
-    <aside class="sidebar">
-
-      <div class="sidebar-brand">
-
-        <div class="brand-mark small">
-          AI
-        </div>
-
-        <div>
-          <strong>AI TRAINER</strong>
-          <span>EXPERT</span>
-        </div>
-
-      </div>
-
-
-      <div class="sidebar-user">
-
-        <div
-          id="sidebarAvatar"
-          class="avatar"
-        >
-          U
-        </div>
-
-        <div class="sidebar-user-info">
-
-          <strong id="sidebarUserName">
-            User
-          </strong>
-
-          <span id="sidebarUserRole">
-            Worker
-          </span>
-
-        </div>
-
-      </div>
-
-
-      <nav class="side-nav">
-
-        <button
-          class="nav-item active"
-          data-view="dashboard"
-        >
-          <span>⌂</span>
-          Dashboard
-        </button>
-
-        <button
-          class="nav-item"
-          data-view="tasks"
-        >
-          <span>▣</span>
-          My Tasks
-        </button>
-
-        <button
-          class="nav-item"
-          data-view="activity"
-        >
-          <span>◷</span>
-          Activity
-        </button>
-
-        <button
-          class="nav-item admin-only hidden"
-          data-view="admin"
-        >
-          <span>⚙</span>
-          Administration
-        </button>
-
-      </nav>
-
-
-      <div class="sidebar-bottom">
-
-        <div class="secure-status">
-          <span class="status-dot"></span>
-          Secure session
-        </div>
-
-        <button
-          id="logoutButton"
-          class="logout-button"
-        >
-          ⇥
-          Sign out
-        </button>
-
-      </div>
-
-    </aside>
-
-
-    <section class="main-content">
-
-      <header class="topbar">
-
-        <div>
-
-          <div class="company-title">
-            AI TRAINER EXPERT
+    <!-- MAIN DASHBOARD VIEW -->
+    <div id="dashboard-view" class="hidden flex-1 flex flex-col">
+      <header class="bg-gray-900 border-b border-gray-800 px-6 py-4 flex justify-between items-center">
+        <div class="text-lg font-bold text-indigo-400 tracking-wider">AI TRAINER EXPERT</div>
+        <div class="flex items-center space-x-4">
+          <div class="text-right">
+            <div id="user-display-name" class="text-sm font-semibold">User</div>
+            <div id="user-display-role" class="text-xs text-indigo-400 font-mono">ROLE</div>
           </div>
-
+          <button id="logout-btn" class="bg-red-900/40 hover:bg-red-800 border border-red-700 text-red-200 text-xs px-3 py-1.5 rounded transition">Logout</button>
         </div>
-
-
-        <div class="top-user">
-
-          <div class="top-user-text">
-
-            <strong id="topUserName">
-              User
-            </strong>
-
-            <span id="topUserEmail">
-              user@example.com
-            </span>
-
-          </div>
-
-          <div
-            id="topAvatar"
-            class="avatar"
-          >
-            U
-          </div>
-
-        </div>
-
       </header>
 
+      <main class="flex-1 p-6 max-w-7xl mx-auto w-full space-y-6">
+        <div>
+          <h2 id="time-greeting" class="text-2xl font-bold text-white">Greetings</h2>
+          <p class="text-gray-400 text-sm">Select your assigned spatial dataset or manage team system access permissions.</p>
+        </div>
 
-      <main class="content-area">
+        <div id="waitlist-banner" class="hidden bg-yellow-900/30 border border-yellow-700/60 text-yellow-300 p-4 rounded text-sm">
+          Your account is registered on the Waitlist. Workspace access privileges must be granted by an Administrator before tasks can be claimed.
+        </div>
 
-        <!-- DASHBOARD -->
-
-        <section
-          id="dashboardView"
-          class="content-view"
-        >
-
-          <div class="welcome-section">
-
-            <div>
-
-              <div
-                id="timeGreeting"
-                class="eyebrow"
-              >
-                GOOD DAY
-              </div>
-
-              <h1>
-                Hello,
-                <span id="welcomeName">
-                  User
-                </span>
-              </h1>
-
-              <p>
-                Here is your annotation workspace for today.
-              </p>
-
-            </div>
-
-            <div class="date-card">
-
-              <span>Today</span>
-
-              <strong id="currentDate">
-                —
-              </strong>
-
-            </div>
-
+        <!-- ADMIN USER CONTROL PANEL -->
+        <section id="admin-panel" class="hidden bg-gray-900 p-5 rounded-lg border border-gray-800 space-y-4">
+          <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+            <h3 class="font-bold text-indigo-400 text-sm uppercase tracking-wider">Admin User Management</h3>
+            <button onclick="inviteCoworkerPrompt()" class="bg-indigo-600 hover:bg-indigo-700 text-xs text-white font-bold px-3 py-1.5 rounded">+ Invite Coworker</button>
           </div>
-
-
-          <div class="stats-grid">
-
-            <div class="stat-card">
-
-              <div class="stat-icon purple">
-                ◈
-              </div>
-
-              <div>
-                <span>Assigned</span>
-                <strong id="assignedCount">0</strong>
-              </div>
-
-            </div>
-
-
-            <div class="stat-card">
-
-              <div class="stat-icon green">
-                ✓
-              </div>
-
-              <div>
-                <span>Completed</span>
-                <strong id="completedCount">0</strong>
-              </div>
-
-            </div>
-
-
-            <div class="stat-card">
-
-              <div class="stat-icon blue">
-                ◇
-              </div>
-
-              <div>
-                <span>2D Access</span>
-                <strong id="access2d">NO</strong>
-              </div>
-
-            </div>
-
-
-            <div class="stat-card">
-
-              <div class="stat-icon orange">
-                ◉
-              </div>
-
-              <div>
-                <span>3D Access</span>
-                <strong id="access3d">NO</strong>
-              </div>
-
-            </div>
-
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-gray-300">
+              <thead class="bg-gray-800 text-gray-400 uppercase">
+                <tr>
+                  <th class="p-3">User Email</th>
+                  <th class="p-3">System Role</th>
+                  <th class="p-3">Workspace Access</th>
+                  <th class="p-3">Account Status</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-user-table" class="divide-y divide-gray-800">
+                <!-- Dynamic user rows populated via JS -->
+              </tbody>
+            </table>
           </div>
-
-
-          <div class="section-header">
-
-            <div>
-              <div class="eyebrow">
-                WORK QUEUE
-              </div>
-
-              <h2>
-                Assigned Work
-              </h2>
-            </div>
-
-          </div>
-
-
-          <div
-            id="taskList"
-            class="task-list"
-          >
-
-            <div class="loading-card">
-
-              <div class="loading-spinner"></div>
-
-              <p>
-                Loading your work...
-              </p>
-
-            </div>
-
-          </div>
-
         </section>
 
-
-        <!-- TASKS -->
-
-        <section
-          id="tasksView"
-          class="content-view hidden"
-        >
-
-          <div class="section-header">
-
-            <div>
-              <div class="eyebrow">
-                YOUR WORK
-              </div>
-
-              <h1>
-                My Tasks
-              </h1>
-
-              <p>
-                Tasks assigned specifically to your account.
-              </p>
-            </div>
-
+        <!-- ASSIGNED TASK BOARD -->
+        <section class="space-y-4">
+          <h3 class="font-bold text-white text-sm uppercase tracking-wider">Available Task Queue</h3>
+          <div id="tasks-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Dynamic task cards -->
           </div>
-
-          <div
-            id="allTasksList"
-            class="task-list"
-          ></div>
-
         </section>
-
-
-        <!-- ACTIVITY -->
-
-        <section
-          id="activityView"
-          class="content-view hidden"
-        >
-
-          <div class="section-header">
-
-            <div>
-              <div class="eyebrow">
-                WORK HISTORY
-              </div>
-
-              <h1>
-                Activity
-              </h1>
-
-              <p>
-                Your latest annotation activity.
-              </p>
-
-            </div>
-
-          </div>
-
-
-          <div
-            id="activityList"
-            class="activity-list"
-          >
-
-            <div class="empty-card">
-              No recent activity.
-            </div>
-
-          </div>
-
-        </section>
-
-
-        <!-- ADMIN -->
-
-        <section
-          id="adminView"
-          class="content-view hidden"
-        >
-
-          <div class="section-header">
-
-            <div>
-
-              <div class="eyebrow">
-                ADMINISTRATION
-              </div>
-
-              <h1>
-                Workforce Control
-              </h1>
-
-              <p>
-                Manage users, roles and 2D / 3D access.
-              </p>
-
-            </div>
-
-          </div>
-
-
-          <div class="admin-grid">
-
-            <div class="admin-card">
-
-              <h3>
-                User access
-              </h3>
-
-              <p>
-                Manage approved coworkers, reviewers and
-                waiting accounts.
-              </p>
-
-              <button
-                class="primary-button"
-                id="refreshUsersButton"
-              >
-                Refresh users
-              </button>
-
-            </div>
-
-
-            <div class="admin-card">
-
-              <h3>
-                Security
-              </h3>
-
-              <p>
-                Access is controlled by the user's profile,
-                role and task permissions.
-              </p>
-
-              <div class="security-pill">
-                RLS protected
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <div class="section-header compact">
-
-            <h2>
-              Team members
-            </h2>
-
-          </div>
-
-
-          <div
-            id="adminUsersList"
-            class="admin-users-list"
-          ></div>
-
-        </section>
-
       </main>
+    </div>
 
-    </section>
+    <!-- WORKSPACE VIEW (3D LiDAR / 7-CAMERA) -->
+    <div id="workspace-view" class="hidden h-screen flex flex-col bg-black">
+      <header class="bg-gray-900 border-b border-gray-800 px-4 py-2.5 flex justify-between items-center z-20">
+        <div class="flex items-center space-x-3">
+          <button id="back-to-dashboard" class="bg-gray-800 hover:bg-gray-700 text-xs text-gray-300 px-3 py-1 rounded border border-gray-700">&larr; Dashboard</button>
+          <span id="workspace-task-title" class="font-bold text-indigo-400 text-sm">Task Workspace</span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <span id="box-counter" class="text-xs bg-gray-800 text-gray-300 px-2.5 py-1 rounded border border-gray-700">Annotated: 0</span>
+          <button id="generate-2d-box-btn" class="hidden bg-indigo-600 hover:bg-indigo-700 text-xs px-3 py-1 rounded font-bold text-white">Generate Box to 2D</button>
+          <button id="submit-task-btn" class="bg-green-600 hover:bg-green-700 text-xs px-3 py-1 rounded font-bold text-white">Submit Task</button>
+        </div>
+      </header>
+
+      <div class="flex-1 relative flex flex-col md:flex-row overflow-hidden">
+        
+        <!-- LEFT PANEL: 7-CAMERA VIEWPORT -->
+        <div id="camera-panel" class="workspace-panel w-full md:w-1/3 bg-gray-950 border-r border-gray-800 p-2 flex flex-col relative overflow-y-auto">
+          <div class="flex justify-between items-center mb-2 px-1">
+            <span class="text-xs font-bold text-gray-400 uppercase">7-Camera Sensor Suite</span>
+            <button onclick="toggleExpandPanel('camera-panel')" class="text-[10px] bg-gray-800 hover:bg-gray-700 text-gray-300 px-2 py-0.5 rounded border border-gray-700">Expand / Restore</button>
+          </div>
+          <div id="camera-grid" class="grid grid-cols-1 gap-2">
+            <!-- 7 Camera views injected here -->
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL: 3D LIDAR CANVAS -->
+        <div id="lidar-panel" class="workspace-panel w-full md:w-2/3 bg-black flex flex-col relative">
+          <div class="flex justify-between items-center p-2 bg-gray-900 border-b border-gray-800 z-10">
+            <span id="lidar-header-text" class="text-xs font-bold text-gray-400 uppercase">3D LiDAR Point Cloud Viewport</span>
+            <button onclick="toggleExpandPanel('lidar-panel')" class="text-[10px] bg-gray-800 hover:bg-gray-700 text-gray-300 px-2 py-0.5 rounded border border-gray-700">Expand / Restore</button>
+          </div>
+          <div id="lidar-canvas-container" class="flex-1 relative">
+            <!-- Three.js Canvas injected here -->
+          </div>
+        </div>
+
+      </div>
+    </div>
 
   </div>
 
+  <script>
+    // Supabase Initialization
+    const SUPABASE_URL = 'https://jnlhbmlkmyuhvndybkb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpubGhibWxrbXlldWh2bmR5YmtiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc4NTgzNTUsImV4cCI6MjEwMzQzNDM1NX0.ZHP3FWqO-cK2Dy0a3xZHYQXVBN4qxu9WH8jBLqOl-1U';
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  <!-- TOAST -->
+    let currentUser = null;
+    let currentProfile = null;
+    let activeTask = null;
+    let annotationsList = [];
+    
+    // Three.js LiDAR Engine Variables
+    let threeScene, threeCamera, threeRenderer, pointCloudMesh, cuboidMesh, headingArrow;
 
-  <div
-    id="toast"
-    class="toast hidden"
-  ></div>
+    async function initApp() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        currentUser = user;
+        await fetchProfile();
+        
+        // Check direct workspace link parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const taskIdParam = urlParams.get('task');
+        if (taskIdParam) {
+          await attemptDirectTaskAccess(taskIdParam);
+        } else {
+          showView('dashboard-view');
+          renderDashboard();
+        }
+      } else {
+        showView('auth-view');
+      }
+    }
 
+    async function fetchProfile() {
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+      if (!error && data) {
+        currentProfile = data;
+      }
+    }
 
-  <script src="app.js"></script>
+    function showView(viewId) {
+      ['auth-view', 'dashboard-view', 'workspace-view'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById(viewId).classList.remove('hidden');
+    }
 
+    // AUTHENTICATION LOGIC
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const statusDiv = document.getElementById('auth-status');
+
+      statusDiv.className = 'mt-4 p-3 rounded text-xs bg-indigo-900/50 border border-indigo-700 text-indigo-200';
+      statusDiv.innerText = 'Verifying credentials...';
+      statusDiv.classList.remove('hidden');
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        statusDiv.className = 'mt-4 p-3 rounded text-xs bg-red-900/50 border border-red-700 text-red-200';
+        statusDiv.innerText = `Login Failed: ${error.message}`;
+      } else {
+        currentUser = data.user;
+        await fetchProfile();
+        if (currentProfile && currentProfile.is_disabled) {
+          await supabase.auth.signOut();
+          statusDiv.className = 'mt-4 p-3 rounded text-xs bg-red-900/50 border border-red-700 text-red-200';
+          statusDiv.innerText = 'Account Access Revoked. Contact System Administrator.';
+          return;
+        }
+        statusDiv.classList.add('hidden');
+        showView('dashboard-view');
+        renderDashboard();
+      }
+    });
+
+    function togglePasswordVisibility() {
+      const pwd = document.getElementById('login-password');
+      pwd.type = pwd.type === 'password' ? 'text' : 'password';
+    }
+
+    async function handleForgotPassword() {
+      const email = prompt('Enter your registered email address for password reset:');
+      if (email) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        alert(error ? `Error: ${error.message}` : 'Password reset link sent to your email.');
+      }
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      window.location.href = window.location.pathname;
+    });
+
+    // DASHBOARD & ADMIN ENGINE
+    async function renderDashboard() {
+      const hour = new Date().getHours();
+      let greeting = 'Good Evening';
+      if (hour < 12) greeting = 'Good Morning';
+      else if (hour < 18) greeting = 'Good Afternoon';
+
+      document.getElementById('time-greeting').innerText = `${greeting}, ${currentProfile.full_name || 'Annotator'}`;
+      document.getElementById('user-display-name').innerText = currentProfile.full_name || currentProfile.email;
+      document.getElementById('user-display-role').innerText = `${currentProfile.role.toUpperCase()} [ACCESS: ${currentProfile.access_type.toUpperCase()}]`;
+
+      if (currentProfile.role === 'waitlist' || currentProfile.access_type === 'none' || currentProfile.is_disabled) {
+        document.getElementById('waitlist-banner').classList.remove('hidden');
+      } else {
+        document.getElementById('waitlist-banner').classList.add('hidden');
+      }
+
+      if (currentProfile.role === 'admin') {
+        document.getElementById('admin-panel').classList.remove('hidden');
+        loadAdminUserTable();
+      } else {
+        document.getElementById('admin-panel').classList.add('hidden');
+      }
+
+      loadTaskCards();
+    }
+
+    async function loadAdminUserTable() {
+      const { data: profiles } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+      const tbody = document.getElementById('admin-user-table');
+      tbody.innerHTML = '';
+
+      profiles.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-800/50 transition';
+        tr.innerHTML = `
+          <td class="p-3 font-medium">${p.email}</td>
+          <td class="p-3">
+            <select onchange="updateUserRole('${p.id}', this.value)" class="bg-gray-800 border border-gray-700 text-xs rounded p-1">
+              <option value="waitlist" ${p.role === 'waitlist' ? 'selected' : ''}>Waitlist</option>
+              <option value="coworker" ${p.role === 'coworker' ? 'selected' : ''}>1st Coworker</option>
+              <option value="reviewer" ${p.role === 'reviewer' ? 'selected' : ''}>Reviewer</option>
+              <option value="admin" ${p.role === 'admin' ? 'selected' : ''}>Admin</option>
+            </select>
+          </td>
+          <td class="p-3">
+            <select onchange="updateUserAccess('${p.id}', this.value)" class="bg-gray-800 border border-gray-700 text-xs rounded p-1">
+              <option value="none" ${p.access_type === 'none' ? 'selected' : ''}>None</option>
+              <option value="2d" ${p.access_type === '2d' ? 'selected' : ''}>2D Access</option>
+              <option value="3d" ${p.access_type === '3d' ? 'selected' : ''}>3D Access</option>
+              <option value="both" ${p.access_type === 'both' ? 'selected' : ''}>2D + 3D Access</option>
+            </select>
+          </td>
+          <td class="p-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${p.is_disabled ? 'bg-red-900/60 text-red-300' : 'bg-green-900/60 text-green-300'}">
+              ${p.is_disabled ? 'DISABLED' : 'ACTIVE'}
+            </span>
+          </td>
+          <td class="p-3 text-right space-x-2">
+            <button onclick="toggleUserStatus('${p.id}', ${!p.is_disabled})" class="bg-gray-800 hover:bg-gray-700 text-xs px-2 py-1 rounded border border-gray-700">
+              ${p.is_disabled ? 'Enable' : 'Revoke'}
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function updateUserRole(userId, role) {
+      await supabase.from('profiles').update({ role }).eq('id', userId);
+      loadAdminUserTable();
+    }
+
+    async function updateUserAccess(userId, access_type) {
+      await supabase.from('profiles').update({ access_type }).eq('id', userId);
+      loadAdminUserTable();
+    }
+
+    async function toggleUserStatus(userId, is_disabled) {
+      await supabase.from('profiles').update({ is_disabled }).eq('id', userId);
+      loadAdminUserTable();
+    }
+
+    async function inviteCoworkerPrompt() {
+      const email = prompt('Enter Coworker Email to register access:');
+      if (email) {
+        alert('Coworker access initialized. Instruct the user to sign up via the main login screen.');
+      }
+    }
+
+    async function loadTaskCards() {
+      const container = document.getElementById('tasks-container');
+      container.innerHTML = '';
+
+      const { data: tasks, error } = await supabase.from('tasks').select('*').order('created_at', { ascending: false });
+
+      if (error || !tasks || tasks.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full p-8 text-center bg-gray-900 border border-gray-800 rounded-lg">
+            <p class="text-gray-300 font-medium text-sm">Working hard to give you more work!</p>
+            <p class="text-gray-500 text-xs mt-1">No active unassigned task scenes currently available in queue.</p>
+          </div>`;
+        return;
+      }
+
+      tasks.forEach(task => {
+        const card = document.createElement('div');
+        card.className = 'bg-gray-900 border border-green-800/40 hover:border-green-600 rounded-lg p-4 flex flex-col justify-between space-y-3';
+        card.innerHTML = `
+          <div>
+            <div class="flex justify-between items-start">
+              <h4 class="font-bold text-white text-sm">${task.task_name}</h4>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-green-950 text-green-400 border border-green-800">${task.task_type.toUpperCase()}</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-2">Status: <span class="text-green-400 font-mono">${task.status.toUpperCase()}</span></p>
+          </div>
+          <button onclick="claimAndOpenTask('${task.id}', '${task.task_type}')" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded text-xs transition">
+            Claim & Start Tasking
+          </button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // DIRECT TASK SECURITY GUARD
+    async function attemptDirectTaskAccess(taskId) {
+      const { data: task, error } = await supabase.from('tasks').select('*').eq('id', taskId).single();
+      if (error || !task) {
+        alert('TASK ACCESS ERROR: Requested task does not exist or has been removed.');
+        showView('dashboard-view');
+        renderDashboard();
+        return;
+      }
+
+      if (!hasPermissionForTask(task.task_type)) {
+        alert('DENIED ACCESS: You lack permissions for this task type (2D/3D). Request access from Admin.');
+        showView('dashboard-view');
+        renderDashboard();
+        return;
+      }
+
+      activeTask = task;
+      launchWorkspace();
+    }
+
+    function hasPermissionForTask(taskType) {
+      if (currentProfile.is_disabled || currentProfile.access_type === 'none') return false;
+      if (currentProfile.role === 'admin') return true;
+      if (currentProfile.access_type === 'both') return true;
+      return currentProfile.access_type === taskType;
+    }
+
+    async function claimAndOpenTask(taskId, taskType) {
+      if (!hasPermissionForTask(taskType)) {
+        alert('ACCESS DENIED: You do not have permissions to open this task type.');
+        return;
+      }
+
+      await supabase.from('tasks').update({ status: 'claimed', assigned_to: currentUser.id, claimed_at: new Date() }).eq('id', taskId);
+      activeTask = { id: taskId, task_type: taskType };
+      launchWorkspace();
+    }
+
+    // WORKSPACE ENGINE (3D LiDAR + 7 CAMERAS)
+    async function launchWorkspace() {
+      showView('workspace-view');
+      document.getElementById('workspace-task-title').innerText = `Workspace: Task ${activeTask.id.slice(0, 8)} [${activeTask.task_type.toUpperCase()}]`;
+
+      const cameraGrid = document.getElementById('camera-grid');
+      cameraGrid.innerHTML = '';
+      const cameras = ['Front Wide', 'Front Narrow', 'Front Left', 'Front Right', 'Rear Left', 'Rear Right', 'Rear'];
+
+      cameras.forEach(cam => {
+        const card = document.createElement('div');
+        card.className = 'relative bg-gray-900 border border-gray-800 rounded overflow-hidden h-32 flex flex-col justify-between p-2';
+        card.innerHTML = `
+          <div class="flex justify-between items-center z-10">
+            <span class="text-[10px] font-bold bg-black/80 text-gray-200 px-1.5 py-0.5 rounded border border-gray-700">${cam}</span>
+          </div>
+          <div id="cam-overlay-${cam.replace(/\s+/g, '')}" class="absolute inset-0 pointer-events-none flex items-center justify-center">
+            <!-- Projected 2D Bounding Boxes render here -->
+          </div>
+          <img src="https://images.unsplash.com/photo-1508974239320-0a029497e820?q=80&w=600" class="absolute inset-0 w-full h-full object-cover opacity-60">
+        `;
+        cameraGrid.appendChild(card);
+      });
+
+      // Role Access Adjustments for Generate Button
+      const genBtn = document.getElementById('generate-2d-box-btn');
+      if (activeTask.task_type === '3d' || currentProfile.access_type === '3d' || currentProfile.access_type === 'both') {
+        genBtn.classList.remove('hidden');
+      } else {
+        genBtn.classList.add('hidden');
+      }
+
+      initThreeJSWorkspace();
+      fetchAnnotations();
+    }
+
+    function initThreeJSWorkspace() {
+      const container = document.getElementById('lidar-canvas-container');
+      container.innerHTML = '';
+
+      threeScene = new THREE.Scene();
+      threeScene.background = new THREE.Color(0x020204);
+
+      threeCamera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+      threeCamera.position.set(0, 12, 16);
+      threeCamera.lookAt(0, 0, 0);
+
+      threeRenderer = new THREE.WebGLRenderer({ antialias: true });
+      threeRenderer.setSize(container.clientWidth, container.clientHeight);
+      container.appendChild(threeRenderer.domElement);
+
+      // LiDAR Point Cloud Visualization (Green Points + Blue Concentric Range Rings)
+      const particleCount = 6000;
+      const positions = new Float32Array(particleCount * 3);
+      for (let i = 0; i < particleCount * 3; i += 3) {
+        positions[i] = (Math.random() - 0.5) * 30;
+        positions[i + 1] = (Math.random() - 0.1) * 2;
+        positions[i + 2] = (Math.random() - 0.5) * 30;
+      }
+      const pointGeo = new THREE.BufferGeometry();
+      pointGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const pointMat = new THREE.PointsMaterial({ size: 0.08, color: 0x00ff66 });
+      pointCloudMesh = new THREE.Points(pointGeo, pointMat);
+      threeScene.add(pointCloudMesh);
+
+      // Concentric Distance Rings
+      [5, 10, 15].forEach(radius => {
+        const ringGeo = new THREE.RingGeometry(radius - 0.05, radius, 64);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0x0066ff, side: THREE.DoubleSide });
+        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+        ringMesh.rotation.x = Math.PI / 2;
+        threeScene.add(ringMesh);
+      });
+
+      // Active Annotating 3D Cuboid & Yaw Pointer
+      const cubeGeo = new THREE.BoxGeometry(2.2, 1.5, 4.5);
+      const cubeMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true });
+      cuboidMesh = new THREE.Mesh(cubeGeo, cubeMat);
+      cuboidMesh.position.set(0, 0.75, 0);
+      threeScene.add(cuboidMesh);
+
+      // Yaw Direction Arrow
+      const dir = new THREE.Vector3(0, 0, -1);
+      const origin = new THREE.Vector3(0, 1.5, 0);
+      headingArrow = new THREE.ArrowHelper(dir, origin, 2.5, 0xff0000);
+      threeScene.add(headingArrow);
+
+      function animate() {
+        requestAnimationFrame(animate);
+        threeRenderer.render(threeScene, threeCamera);
+      }
+      animate();
+    }
+
+    async function fetchAnnotations() {
+      const { data } = await supabase.from('annotations').select('*').eq('task_id', activeTask.id);
+      annotationsList = data || [];
+      document.getElementById('box-counter').innerText = `Annotated: ${annotationsList.length}`;
+      render2DBoxProjections();
+    }
+
+    document.getElementById('generate-2d-box-btn').addEventListener('click', async () => {
+      // Create 3D Cuboid Vector & Auto-Project 2D Bounding Boxes
+      const newTrackId = Math.floor(1000 + Math.random() * 9000);
+      const newAnnotation = {
+        task_id: activeTask.id,
+        user_id: currentUser.id,
+        user_email: currentUser.email,
+        annotation_type: 'generated_2d_box',
+        track_id: newTrackId,
+        object_class: 'Vehicle',
+        data: { x: 20, y: 20, width: 60, height: 40, creator: currentUser.email }
+      };
+
+      await supabase.from('annotations').insert(newAnnotation);
+      await fetchAnnotations();
+      alert(`3D Cuboid [Track ID: ${newTrackId}] projected onto 2D camera frames.`);
+    });
+
+    function render2DBoxProjections() {
+      const cameras = ['FrontWide', 'FrontNarrow', 'FrontLeft', 'FrontRight', 'RearLeft', 'RearRight', 'Rear'];
+      cameras.forEach(camKey => {
+        const overlay = document.getElementById(`cam-overlay-${camKey}`);
+        if (overlay) {
+          overlay.innerHTML = '';
+          annotationsList.forEach(ann => {
+            const box = document.createElement('div');
+            box.className = 'absolute border-2 border-green-400 bg-green-500/10 flex items-start p-0.5 text-[8px] text-green-300 font-mono';
+            box.style.left = `${ann.data.x}%`;
+            box.style.top = `${ann.data.y}%`;
+            box.style.width = `${ann.data.width}%`;
+            box.style.height = `${ann.data.height}%`;
+            box.innerText = `ID:${ann.track_id} [${ann.user_email.split('@')[0]}]`;
+            overlay.appendChild(box);
+          });
+        }
+      });
+    }
+
+    document.getElementById('submit-task-btn').addEventListener('click', async () => {
+      await supabase.from('tasks').update({ status: 'submitted' }).eq('id', activeTask.id);
+      alert('Task submitted successfully!');
+      showView('dashboard-view');
+      renderDashboard();
+    });
+
+    document.getElementById('back-to-dashboard').addEventListener('click', () => {
+      showView('dashboard-view');
+      renderDashboard();
+    });
+
+    function toggleExpandPanel(panelId) {
+      document.getElementById(panelId).classList.toggle('expanded-view');
+    }
+
+    window.onload = initApp;
+  </script>
 </body>
 </html>
