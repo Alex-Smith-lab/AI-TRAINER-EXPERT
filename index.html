@@ -2,699 +2,880 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <meta
+    name="description"
+    content="AI TRAINER EXPERT - Professional 2D and 3D data annotation training workspace."
+  >
 
   <title>AI TRAINER EXPERT</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Prevent favicon 404 -->
+  <link
+    rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%237c3aed'/%3E%3Cpath d='M25 70V30h12l13 19 13-19h12v40H64V49L50 68 36 49v21z' fill='white'/%3E%3C/svg%3E"
+  >
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="styles.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
 
-<!-- =========================================================
-     LOGIN SCREEN
-========================================================= -->
+  <!-- =====================================================
+       LOGIN SCREEN
+  ====================================================== -->
 
-<div id="loginScreen" class="login-screen">
+  <main id="authScreen" class="auth-screen">
 
-  <div class="login-left">
+    <section class="auth-left">
 
-    <div class="brand login-brand">
-      <div class="brand-mark">AI</div>
-
-      <div>
-        <div class="brand-name">AI TRAINER EXPERT</div>
-        <div class="brand-subtitle">DATA ANNOTATION PLATFORM</div>
-      </div>
-    </div>
-
-    <div class="login-container">
-
-      <div class="login-heading">
-        <span class="eyebrow">SECURE WORKSPACE</span>
-        <h1>Welcome back</h1>
-        <p>
-          Sign in to access your assigned annotation work,
-          training tasks and production workspace.
-        </p>
-      </div>
-
-      <form id="loginForm">
-
-        <label>Email address</label>
-
-        <div class="input-wrap">
-          <span>✉</span>
-          <input
-            id="loginEmail"
-            type="email"
-            placeholder="Enter your email"
-            autocomplete="email"
-            required
-          >
-        </div>
-
-        <label>Password</label>
-
-        <div class="input-wrap">
-          <span>●</span>
-
-          <input
-            id="loginPassword"
-            type="password"
-            placeholder="Enter your password"
-            autocomplete="current-password"
-            required
-          >
-
-          <button
-            type="button"
-            class="password-toggle"
-            id="togglePassword"
-          >
-            Show
-          </button>
-        </div>
-
-        <div class="login-options">
-
-          <label class="remember-label">
-            <input id="rememberMe" type="checkbox" checked>
-            <span>Remember me</span>
-          </label>
-
-          <button
-            type="button"
-            class="link-button"
-            id="forgotPassword"
-          >
-            Forgot password?
-          </button>
-
-        </div>
-
-        <button
-          type="submit"
-          class="primary-button login-button"
-          id="loginButton"
-        >
-          <span id="loginButtonText">Sign in</span>
-          <span id="loginSpinner" class="button-spinner hidden"></span>
-        </button>
-
-        <div id="loginMessage" class="login-message hidden"></div>
-
-      </form>
-
-      <div class="security-note">
-        <span class="shield-icon">✓</span>
-        <span>Your access is controlled by your assigned role and task permissions.</span>
-      </div>
-
-    </div>
-
-    <div class="login-footer">
-      AI TRAINER EXPERT • Annotation Operations
-    </div>
-
-  </div>
-
-
-  <div class="login-right">
-
-    <div class="image-overlay"></div>
-
-    <div class="hero-content">
-
-      <div class="hero-badge">
-        <span class="pulse-dot"></span>
-        MULTI-SENSOR ANNOTATION
-      </div>
-
-      <h2>
-        Train the future<br>
-        of <span>AI perception.</span>
-      </h2>
-
-      <p>
-        Professional 2D camera and 3D LiDAR annotation
-        in one synchronized workspace.
-      </p>
-
-      <div class="sensor-preview">
-
-        <div class="sensor-card">
-          <strong>7</strong>
-          <small>CAMERAS</small>
-        </div>
-
-        <div class="sensor-card">
-          <strong>3D</strong>
-          <small>LIDAR</small>
-        </div>
-
-        <div class="sensor-card">
-          <strong>2D</strong>
-          <small>VISION</small>
-        </div>
-
-      </div>
-
-    </div>
-
-    <div class="hero-credit">
-      AI TRAINER EXPERT
-    </div>
-
-  </div>
-
-</div>
-
-
-<!-- =========================================================
-     APPLICATION
-========================================================= -->
-
-<div id="appScreen" class="app-screen hidden">
-
-  <aside class="sidebar">
-
-    <div class="sidebar-brand">
-
-      <div class="brand-mark">AI</div>
-
-      <div>
-        <div class="sidebar-title">AI TRAINER</div>
-        <div class="sidebar-title-small">EXPERT</div>
-      </div>
-
-    </div>
-
-    <nav class="side-navigation">
-
-      <button class="nav-item active" data-page="home">
-        <span>⌂</span>
-        <span>Home</span>
-      </button>
-
-      <button class="nav-item" data-page="tasks">
-        <span>▣</span>
-        <span>My Tasks</span>
-      </button>
-
-      <button class="nav-item" data-page="activity">
-        <span>◷</span>
-        <span>Activity</span>
-      </button>
-
-      <button
-        class="nav-item admin-only"
-        data-page="admin"
-        id="adminNav"
-      >
-        <span>⚙</span>
-        <span>Admin</span>
-      </button>
-
-    </nav>
-
-    <div class="sidebar-bottom">
-
-      <div class="online-indicator">
-        <span></span>
-        System online
-      </div>
-
-      <button id="logoutButton" class="logout-button">
-        ⇥ Sign out
-      </button>
-
-    </div>
-
-  </aside>
-
-
-  <main class="main-content">
-
-    <header class="topbar">
-
-      <div>
-        <div class="company-name">AI TRAINER EXPERT</div>
-        <div class="page-location" id="pageLocation">
-          Annotation Operations
-        </div>
-      </div>
-
-      <div class="top-user">
-
-        <div class="user-avatar" id="topAvatar">
-          A
-        </div>
-
-        <div class="top-user-info">
-          <strong id="topUserName">User</strong>
-          <span id="topUserRole">Worker</span>
-        </div>
-
-        <button id="profileMenuButton" class="profile-menu-button">
-          ⋮
-        </button>
-
-      </div>
-
-    </header>
-
-
-    <section id="homePage" class="page active-page">
-
-      <div class="welcome-section">
-
+      <div class="brand-mobile">
+        <div class="brand-mark">AI</div>
         <div>
-
-          <span class="eyebrow">YOUR WORKSPACE</span>
-
-          <h1 id="greeting">
-            Good evening
-          </h1>
-
-          <p id="welcomeName">
-            Welcome back.
-          </p>
-
+          <strong>AI TRAINER</strong>
+          <span>EXPERT</span>
         </div>
-
-        <div class="date-display" id="currentDate"></div>
-
       </div>
 
+      <div class="auth-container">
 
-      <div class="stats-row">
+        <div class="brand-desktop">
+          <div class="brand-mark">AI</div>
 
-        <div class="stat-card">
+          <div class="brand-name">
+            <strong>AI TRAINER</strong>
+            <span>EXPERT</span>
+          </div>
+        </div>
 
-          <div class="stat-icon purple">▣</div>
+        <!-- LOGIN -->
 
-          <div>
-            <span>Assigned</span>
-            <strong id="assignedCount">0</strong>
+        <div id="loginView">
+
+          <div class="auth-heading">
+            <div class="eyebrow">SECURE WORKSPACE</div>
+
+            <h1>Welcome back</h1>
+
+            <p>
+              Sign in to access your assigned annotation work.
+            </p>
           </div>
 
-        </div>
-
-
-        <div class="stat-card">
-
-          <div class="stat-icon green">✓</div>
-
-          <div>
-            <span>Completed</span>
-            <strong id="completedCount">0</strong>
-          </div>
-
-        </div>
-
-
-        <div class="stat-card">
-
-          <div class="stat-icon blue">◈</div>
-
-          <div>
-            <span>Annotation boxes</span>
-            <strong id="boxCount">0</strong>
-          </div>
-
-        </div>
-
-
-        <div class="stat-card">
-
-          <div class="stat-icon orange">◷</div>
-
-          <div>
-            <span>Active role</span>
-            <strong id="roleStat">Worker</strong>
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <div class="section-heading">
-
-        <div>
-          <span class="eyebrow">WORK QUEUE</span>
-          <h2>Assigned work</h2>
-        </div>
-
-        <button
-          class="secondary-button"
-          id="refreshTasks"
-        >
-          ↻ Refresh
-        </button>
-
-      </div>
-
-
-      <div id="taskList" class="task-grid"></div>
-
-
-      <div id="emptyTasks" class="empty-state hidden">
-
-        <div class="empty-icon">◌</div>
-
-        <h3>Working hard to give you more work</h3>
-
-        <p>
-          There are currently no unclaimed tasks assigned to your account.
-          Check again later.
-        </p>
-
-      </div>
-
-    </section>
-
-
-    <!-- =====================================================
-         MY TASKS
-    ====================================================== -->
-
-    <section id="tasksPage" class="page">
-
-      <div class="page-header">
-
-        <div>
-          <span class="eyebrow">TASK MANAGEMENT</span>
-          <h1>My Tasks</h1>
-          <p>Tasks currently assigned to your account.</p>
-        </div>
-
-      </div>
-
-      <div id="myTasksList" class="full-task-list"></div>
-
-    </section>
-
-
-    <!-- =====================================================
-         ACTIVITY
-    ====================================================== -->
-
-    <section id="activityPage" class="page">
-
-      <div class="page-header">
-
-        <div>
-          <span class="eyebrow">AUDIT TRAIL</span>
-          <h1>Activity</h1>
-          <p>Your recent annotation activity.</p>
-        </div>
-
-      </div>
-
-      <div id="activityList" class="activity-list"></div>
-
-    </section>
-
-
-    <!-- =====================================================
-         ADMIN
-    ====================================================== -->
-
-    <section id="adminPage" class="page">
-
-      <div class="page-header">
-
-        <div>
-          <span class="eyebrow">CONTROL CENTER</span>
-          <h1>Administration</h1>
-          <p>
-            Manage workers, permissions, tasks and access.
-          </p>
-        </div>
-
-      </div>
-
-
-      <div class="admin-tabs">
-
-        <button class="admin-tab active" data-admin-tab="overview">
-          Overview
-        </button>
-
-        <button class="admin-tab" data-admin-tab="users">
-          Users
-        </button>
-
-        <button class="admin-tab" data-admin-tab="tasks">
-          Tasks
-        </button>
-
-        <button class="admin-tab" data-admin-tab="requests">
-          Access requests
-        </button>
-
-      </div>
-
-
-      <!-- ADMIN OVERVIEW -->
-
-      <div
-        class="admin-panel active"
-        id="adminOverview"
-      >
-
-        <div class="admin-stats">
-
-          <div class="admin-stat">
-            <span>Total users</span>
-            <strong id="adminTotalUsers">0</strong>
-          </div>
-
-          <div class="admin-stat">
-            <span>Workers</span>
-            <strong id="adminWorkers">0</strong>
-          </div>
-
-          <div class="admin-stat">
-            <span>Reviewers</span>
-            <strong id="adminReviewers">0</strong>
-          </div>
-
-          <div class="admin-stat">
-            <span>Waiting</span>
-            <strong id="adminWaitlist">0</strong>
-          </div>
-
-        </div>
-
-        <div class="admin-card">
-
-          <div class="card-title-row">
-
-            <div>
-              <h3>Create annotation task</h3>
-              <p>
-                Assign 2D, 3D or both task types to a worker.
-              </p>
+          <form id="loginForm">
+
+            <label for="loginEmail">
+              Email address
+            </label>
+
+            <div class="input-wrap">
+              <span>✉</span>
+
+              <input
+                id="loginEmail"
+                type="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              >
             </div>
 
-          </div>
+
+            <label for="loginPassword">
+              Password
+            </label>
+
+            <div class="input-wrap">
+              <span>●</span>
+
+              <input
+                id="loginPassword"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Enter your password"
+                required
+              >
+
+              <button
+                type="button"
+                id="togglePassword"
+                class="eye-button"
+                aria-label="Show password"
+              >
+                ◉
+              </button>
+            </div>
 
 
-          <form id="createTaskForm">
+            <div class="login-options">
 
-            <div class="form-grid">
-
-              <div class="form-field">
-                <label>Task name</label>
+              <label class="remember-option">
                 <input
-                  id="taskName"
-                  required
-                  placeholder="e.g. Nairobi Route 08"
+                  type="checkbox"
+                  id="rememberMe"
+                  checked
                 >
-              </div>
+                <span>Remember me</span>
+              </label>
 
-              <div class="form-field">
-                <label>Task type</label>
-
-                <select id="taskType">
-                  <option value="3d">3D LiDAR</option>
-                  <option value="2d">2D Camera</option>
-                  <option value="both">2D + 3D</option>
-                </select>
-
-              </div>
-
-              <div class="form-field">
-                <label>Assign to</label>
-
-                <select id="taskAssignee">
-                  <option value="">Select worker</option>
-                </select>
-
-              </div>
-
-              <div class="form-field">
-                <label>Google Sheet / task link</label>
-
-                <input
-                  id="taskLink"
-                  type="url"
-                  placeholder="https://docs.google.com/..."
-                >
-
-              </div>
-
-              <div class="form-field full">
-
-                <label>Description</label>
-
-                <textarea
-                  id="taskDescription"
-                  rows="3"
-                  placeholder="Task instructions..."
-                ></textarea>
-
-              </div>
+              <button
+                type="button"
+                id="forgotPasswordButton"
+                class="link-button"
+              >
+                Forgot password?
+              </button>
 
             </div>
 
-            <button class="primary-button" type="submit">
-              + Create task
+
+            <button
+              type="submit"
+              id="loginButton"
+              class="primary-button"
+            >
+              <span id="loginButtonText">
+                Sign in
+              </span>
+
+              <span
+                id="loginSpinner"
+                class="button-spinner hidden"
+              ></span>
             </button>
 
           </form>
 
-        </div>
 
-      </div>
+          <div
+            id="loginMessage"
+            class="message hidden"
+          ></div>
 
 
-      <!-- USERS -->
+          <div class="access-note">
 
-      <div class="admin-panel" id="adminUsers">
-
-        <div class="admin-card">
-
-          <div class="card-title-row">
+            <div class="access-icon">
+              ✓
+            </div>
 
             <div>
-              <h3>Team members</h3>
+              <strong>Controlled access</strong>
+
               <p>
-                Control roles and 2D / 3D access.
+                Accounts are activated by an administrator.
+                Only approved users can enter the workspace.
               </p>
             </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- FORGOT PASSWORD -->
+
+        <div
+          id="forgotView"
+          class="hidden"
+        >
+
+          <button
+            id="backToLogin"
+            class="back-button"
+            type="button"
+          >
+            ← Back to sign in
+          </button>
+
+          <div class="auth-heading">
+
+            <div class="eyebrow">
+              ACCOUNT RECOVERY
+            </div>
+
+            <h1>Reset your password</h1>
+
+            <p>
+              Enter the email associated with your account.
+              We will send you a secure password-reset link.
+            </p>
+
+          </div>
+
+
+          <form id="forgotForm">
+
+            <label for="forgotEmail">
+              Email address
+            </label>
+
+            <div class="input-wrap">
+              <span>✉</span>
+
+              <input
+                id="forgotEmail"
+                type="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              >
+            </div>
+
 
             <button
-              id="refreshUsers"
-              class="secondary-button"
+              type="submit"
+              id="resetButton"
+              class="primary-button"
             >
-              ↻ Refresh
+              <span id="resetButtonText">
+                Send reset link
+              </span>
+
+              <span
+                id="resetSpinner"
+                class="button-spinner hidden"
+              ></span>
             </button>
 
+          </form>
+
+
+          <div
+            id="forgotMessage"
+            class="message hidden"
+          ></div>
+
+        </div>
+
+
+        <!-- NEW PASSWORD -->
+
+        <div
+          id="newPasswordView"
+          class="hidden"
+        >
+
+          <div class="auth-heading">
+
+            <div class="eyebrow">
+              PASSWORD RECOVERY
+            </div>
+
+            <h1>Create new password</h1>
+
+            <p>
+              Choose a new secure password for your account.
+            </p>
+
           </div>
 
-          <div id="usersTable" class="users-table"></div>
+
+          <form id="newPasswordForm">
+
+            <label for="newPassword">
+              New password
+            </label>
+
+            <div class="input-wrap">
+
+              <span>●</span>
+
+              <input
+                id="newPassword"
+                type="password"
+                minlength="8"
+                placeholder="At least 8 characters"
+                required
+              >
+
+            </div>
+
+
+            <label for="confirmPassword">
+              Confirm password
+            </label>
+
+            <div class="input-wrap">
+
+              <span>●</span>
+
+              <input
+                id="confirmPassword"
+                type="password"
+                minlength="8"
+                placeholder="Repeat your password"
+                required
+              >
+
+            </div>
+
+
+            <button
+              type="submit"
+              id="updatePasswordButton"
+              class="primary-button"
+            >
+              Update password
+            </button>
+
+          </form>
+
+
+          <div
+            id="newPasswordMessage"
+            class="message hidden"
+          ></div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- RIGHT SIDE -->
+
+    <section class="auth-right">
+
+      <div class="hero-overlay"></div>
+
+      <div class="hero-content">
+
+        <div class="hero-badge">
+          <span class="pulse"></span>
+          PROFESSIONAL DATA ANNOTATION
+        </div>
+
+        <h2>
+          Train.
+          <br>
+          Annotate.
+          <br>
+          <span>Become an Expert.</span>
+        </h2>
+
+        <p>
+          A controlled 2D and 3D annotation environment
+          designed for precision, consistency and professional
+          AI training workflows.
+        </p>
+
+
+        <div class="hero-stats">
+
+          <div>
+            <strong>2D</strong>
+            <span>Vision Annotation</span>
+          </div>
+
+          <div>
+            <strong>3D</strong>
+            <span>LiDAR Annotation</span>
+          </div>
+
+          <div>
+            <strong>7</strong>
+            <span>Camera Views</span>
+          </div>
 
         </div>
 
       </div>
 
 
-      <!-- TASKS -->
-
-      <div class="admin-panel" id="adminTasks">
-
-        <div class="admin-card">
-
-          <div class="card-title-row">
-
-            <div>
-              <h3>All tasks</h3>
-              <p>
-                Monitor task assignment and claims.
-              </p>
-            </div>
-
-          </div>
-
-          <div id="adminTasksTable" class="users-table"></div>
-
+      <div class="floating-card card-one">
+        <span class="mini-icon">▣</span>
+        <div>
+          <strong>3D LiDAR</strong>
+          <small>Multi-view annotation</small>
         </div>
-
       </div>
 
 
-      <!-- REQUESTS -->
-
-      <div class="admin-panel" id="adminRequests">
-
-        <div class="admin-card">
-
-          <div class="card-title-row">
-
-            <div>
-              <h3>Access requests</h3>
-              <p>
-                Approve or reject coworker access requests.
-              </p>
-            </div>
-
-          </div>
-
-          <div id="requestsTable" class="users-table"></div>
-
+      <div class="floating-card card-two">
+        <span class="mini-icon">◇</span>
+        <div>
+          <strong>2D Vision</strong>
+          <small>Precision bounding boxes</small>
         </div>
-
       </div>
 
     </section>
 
   </main>
 
-</div>
+
+  <!-- =====================================================
+       MAIN APPLICATION
+  ====================================================== -->
+
+  <div
+    id="appScreen"
+    class="app-screen hidden"
+  >
+
+    <aside class="sidebar">
+
+      <div class="sidebar-brand">
+
+        <div class="brand-mark small">
+          AI
+        </div>
+
+        <div>
+          <strong>AI TRAINER</strong>
+          <span>EXPERT</span>
+        </div>
+
+      </div>
 
 
-<!-- =========================================================
-     MODAL
-========================================================= -->
+      <div class="sidebar-user">
 
-<div id="modalOverlay" class="modal-overlay hidden">
+        <div
+          id="sidebarAvatar"
+          class="avatar"
+        >
+          U
+        </div>
 
-  <div class="modal">
+        <div class="sidebar-user-info">
 
-    <button
-      id="closeModal"
-      class="modal-close"
-    >
-      ×
-    </button>
+          <strong id="sidebarUserName">
+            User
+          </strong>
 
-    <div id="modalContent"></div>
+          <span id="sidebarUserRole">
+            Worker
+          </span>
+
+        </div>
+
+      </div>
+
+
+      <nav class="side-nav">
+
+        <button
+          class="nav-item active"
+          data-view="dashboard"
+        >
+          <span>⌂</span>
+          Dashboard
+        </button>
+
+        <button
+          class="nav-item"
+          data-view="tasks"
+        >
+          <span>▣</span>
+          My Tasks
+        </button>
+
+        <button
+          class="nav-item"
+          data-view="activity"
+        >
+          <span>◷</span>
+          Activity
+        </button>
+
+        <button
+          class="nav-item admin-only hidden"
+          data-view="admin"
+        >
+          <span>⚙</span>
+          Administration
+        </button>
+
+      </nav>
+
+
+      <div class="sidebar-bottom">
+
+        <div class="secure-status">
+          <span class="status-dot"></span>
+          Secure session
+        </div>
+
+        <button
+          id="logoutButton"
+          class="logout-button"
+        >
+          ⇥
+          Sign out
+        </button>
+
+      </div>
+
+    </aside>
+
+
+    <section class="main-content">
+
+      <header class="topbar">
+
+        <div>
+
+          <div class="company-title">
+            AI TRAINER EXPERT
+          </div>
+
+        </div>
+
+
+        <div class="top-user">
+
+          <div class="top-user-text">
+
+            <strong id="topUserName">
+              User
+            </strong>
+
+            <span id="topUserEmail">
+              user@example.com
+            </span>
+
+          </div>
+
+          <div
+            id="topAvatar"
+            class="avatar"
+          >
+            U
+          </div>
+
+        </div>
+
+      </header>
+
+
+      <main class="content-area">
+
+        <!-- DASHBOARD -->
+
+        <section
+          id="dashboardView"
+          class="content-view"
+        >
+
+          <div class="welcome-section">
+
+            <div>
+
+              <div
+                id="timeGreeting"
+                class="eyebrow"
+              >
+                GOOD DAY
+              </div>
+
+              <h1>
+                Hello,
+                <span id="welcomeName">
+                  User
+                </span>
+              </h1>
+
+              <p>
+                Here is your annotation workspace for today.
+              </p>
+
+            </div>
+
+            <div class="date-card">
+
+              <span>Today</span>
+
+              <strong id="currentDate">
+                —
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <div class="stats-grid">
+
+            <div class="stat-card">
+
+              <div class="stat-icon purple">
+                ◈
+              </div>
+
+              <div>
+                <span>Assigned</span>
+                <strong id="assignedCount">0</strong>
+              </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+              <div class="stat-icon green">
+                ✓
+              </div>
+
+              <div>
+                <span>Completed</span>
+                <strong id="completedCount">0</strong>
+              </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+              <div class="stat-icon blue">
+                ◇
+              </div>
+
+              <div>
+                <span>2D Access</span>
+                <strong id="access2d">NO</strong>
+              </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+              <div class="stat-icon orange">
+                ◉
+              </div>
+
+              <div>
+                <span>3D Access</span>
+                <strong id="access3d">NO</strong>
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="section-header">
+
+            <div>
+              <div class="eyebrow">
+                WORK QUEUE
+              </div>
+
+              <h2>
+                Assigned Work
+              </h2>
+            </div>
+
+          </div>
+
+
+          <div
+            id="taskList"
+            class="task-list"
+          >
+
+            <div class="loading-card">
+
+              <div class="loading-spinner"></div>
+
+              <p>
+                Loading your work...
+              </p>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- TASKS -->
+
+        <section
+          id="tasksView"
+          class="content-view hidden"
+        >
+
+          <div class="section-header">
+
+            <div>
+              <div class="eyebrow">
+                YOUR WORK
+              </div>
+
+              <h1>
+                My Tasks
+              </h1>
+
+              <p>
+                Tasks assigned specifically to your account.
+              </p>
+            </div>
+
+          </div>
+
+          <div
+            id="allTasksList"
+            class="task-list"
+          ></div>
+
+        </section>
+
+
+        <!-- ACTIVITY -->
+
+        <section
+          id="activityView"
+          class="content-view hidden"
+        >
+
+          <div class="section-header">
+
+            <div>
+              <div class="eyebrow">
+                WORK HISTORY
+              </div>
+
+              <h1>
+                Activity
+              </h1>
+
+              <p>
+                Your latest annotation activity.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div
+            id="activityList"
+            class="activity-list"
+          >
+
+            <div class="empty-card">
+              No recent activity.
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ADMIN -->
+
+        <section
+          id="adminView"
+          class="content-view hidden"
+        >
+
+          <div class="section-header">
+
+            <div>
+
+              <div class="eyebrow">
+                ADMINISTRATION
+              </div>
+
+              <h1>
+                Workforce Control
+              </h1>
+
+              <p>
+                Manage users, roles and 2D / 3D access.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="admin-grid">
+
+            <div class="admin-card">
+
+              <h3>
+                User access
+              </h3>
+
+              <p>
+                Manage approved coworkers, reviewers and
+                waiting accounts.
+              </p>
+
+              <button
+                class="primary-button"
+                id="refreshUsersButton"
+              >
+                Refresh users
+              </button>
+
+            </div>
+
+
+            <div class="admin-card">
+
+              <h3>
+                Security
+              </h3>
+
+              <p>
+                Access is controlled by the user's profile,
+                role and task permissions.
+              </p>
+
+              <div class="security-pill">
+                RLS protected
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="section-header compact">
+
+            <h2>
+              Team members
+            </h2>
+
+          </div>
+
+
+          <div
+            id="adminUsersList"
+            class="admin-users-list"
+          ></div>
+
+        </section>
+
+      </main>
+
+    </section>
 
   </div>
 
-</div>
+
+  <!-- TOAST -->
+
+  <div
+    id="toast"
+    class="toast hidden"
+  ></div>
 
 
-<!-- =========================================================
-     TOAST
-========================================================= -->
-
-<div id="toast" class="toast hidden">
-  <span id="toastIcon">✓</span>
-  <span id="toastText"></span>
-</div>
-
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js"></script>
+  <script src="app.js"></script>
 
 </body>
 </html>
